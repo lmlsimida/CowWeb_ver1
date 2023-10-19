@@ -84,7 +84,7 @@ DATABASES = {
         "ENGINE": "django.db.backends.mysql",
         "NAME": "webcloud",
         "USER": "root",
-        'PASSWORD': '123123',
+        "PASSWORD": "123123",
         "HOST": "localhost",
         "PORT": 3306,
     }
@@ -175,3 +175,7 @@ CORS_ORIGIN_ALLOW_ALL = True
 # 允许cookies跨域
 CORS_ALLOW_CREDENTIALS = True
 AUTH_USER_MODEL = "users.User"
+try:
+    from .local_settings import *
+except:
+    pass
