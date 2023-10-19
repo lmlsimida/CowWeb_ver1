@@ -1,0 +1,24 @@
+version: '3'
+
+services:
+  web:
+    build: .
+    volumes:
+      - uwsgi-socket:/tmp
+      - static-files:/app/static
+
+
+  nginx-backend:
+    image: nginx
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/backend.conf
+      - uwsgi-socket:/tmp
+      - static-files:/app/static
+    depends_on:
+      - web
+
+volumes:
+  uwsgi-socket:
+  static-files:
