@@ -3,9 +3,12 @@ version: '3'
 services:
   web:
     build: .
+    environment:
+      - DJANGO_SETTINGS_MODULE=CowWeb_ver1.settings
     volumes:
       - uwsgi-socket:/tmp
       - static-files:/app/static
+      - ./entrypoint.sh:/app/entrypoint.sh  # 挂载 entrypoint.sh 到容器
 
 
   nginx-backend:
@@ -16,6 +19,7 @@ services:
       - ./nginx.conf:/etc/nginx/conf.d/backend.conf
       - uwsgi-socket:/tmp
       - static-files:/app/static
+      - ./entrypoint.sh:/app/entrypoint.sh  # 挂载 entrypoint.sh 到容器
     depends_on:
       - web
 

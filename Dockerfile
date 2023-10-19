@@ -1,8 +1,5 @@
 # define an alias for the specfic python version used in this file.
-FROM python:3.8
-# Install apt packages
-RUN dpkg -l | grep libpq-dev || (apt-get update && apt-get install -y libpq-dev)
-
+FROM python:3.10
 # Requirements are installed here to ensure they will be cached.
 COPY requirements.txt .
 RUN pip install -r /requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
