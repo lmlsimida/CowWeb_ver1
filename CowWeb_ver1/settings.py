@@ -84,8 +84,7 @@ DATABASES = {
         "ENGINE": "django.db.backends.mysql",
         "NAME": "webcloud",
         "USER": "root",
-        "PASSWORD": "root",
-        # 'PASSWORD': '123123',
+        'PASSWORD': '123123',
         "HOST": "localhost",
         "PORT": 3306,
     }
