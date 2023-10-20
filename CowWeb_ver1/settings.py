@@ -85,7 +85,7 @@ DATABASES = {
         "NAME": "webcloud",
         "USER": "root",
         "PASSWORD": "1q2w3e4r",
-        "HOST": "localhost",
+        "HOST": "127.0.0.1",
         "PORT": 3306,
     }
 }
