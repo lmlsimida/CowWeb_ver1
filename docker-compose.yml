@@ -9,7 +9,7 @@ services:
       - uwsgi-socket:/tmp
       - static-files:/app/static
       - ./entrypoint.sh:/app/entrypoint.sh  # 挂载 entrypoint.sh 到容器
-
+    restart: always
 
   nginx-backend:
     image: nginx
@@ -22,7 +22,7 @@ services:
       - ./entrypoint.sh:/app/entrypoint.sh  # 挂载 entrypoint.sh 到容器
     depends_on:
       - web
-
+    restart: always
 volumes:
   uwsgi-socket:
   static-files:
