@@ -17,13 +17,18 @@ from django.contrib import admin
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
-from apps.users import views
+from apps.WebCloud.views import choose_province, choose_city, choose_district
+from apps.users.views import UserViewSet
 
 router = DefaultRouter()
-router.register("", views.UserViewSet)
+router.register("", UserViewSet)
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("users/", include("apps.users.urls")),
     path("", include("apps.WebCloud.urls")),
+    # 省/市/区域联动
+    path("province/", choose_province),
+    path("city/", choose_city),
+    path("district/", choose_district),
 ]

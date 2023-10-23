@@ -1,0 +1,189 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static admin_modify simpletags %}
+
+{% block extrahead %}{{ block.super }}
+    <script type="text/javascript" src="{% url 'admin:jsi18n' %}"></script>
+    {{ media }}
+
+{% endblock %}
+{% block extrastyle %}{{ block.super }}
+    <link rel="stylesheet" type="text/css" href="{% static "admin/css/forms.css" %}"/>{% endblock %}
+{% block content %}
+    <style type="text/css">
+        .inline-group .tabular td.original p {
+            margin-top: -33px;
+        }
+
+        .page-header {
+            padding: 10px;
+        }
+
+    </style>
+    <div id="content-main" class="form-main">
+        <a href="http://api.map.baidu.com/lbsapi/getpoint/index.html" target="_blank"
+           style="float: right">百度地图坐标拾取器</a>
+        <div class="page-header">
+            <el-page-header @back="goBack" content="{{ title }}"/>
+
+        </div>
+        {% block object-tools %}
+            {% if change %}{% if not is_popup %}
+                <ul class="object-tools">
+                    {% block object-tools-items %}
+                        <li>
+                            <el-dialog title="{% trans "History" %}" :visible.sync="dialogTableVisible">
+                                <iframe frameborder="0" :src="url" width="100%" height="300"></iframe>
+                            </el-dialog>
+                            {% url opts|admin_urlname:'history' original.pk|admin_urlquote as history_url %}
+
+                            <el-button @click="go_url('{% add_preserved_filters history_url %}')" class="historylink"
+                                       icon="fas fa-history">{% trans "History" %}</el-button>
+                        </li>
+                        {% if has_absolute_url %}
+                            <li>
+                                <el-button @click="window.open('{{ absolute_url }}')" class="viewsitelink"
+                                           icon="fas fa-globe-asia">{% trans "View on site" %}</el-button>
+                            </li>
+                        {% endif %}
+                    {% endblock %}
+                </ul>
+            {% endif %}{% endif %}
+        {% endblock %}
+        <form {% if has_file_field %}enctype="multipart/form-data" {% endif %}action="{{ form_url }}" method="post"
+              id="{{ opts.model_name }}_form" novalidate>{% csrf_token %}{% block form_top %}{% endblock %}
+            <div>
+                {% if is_popup %}<input type="hidden" name="{{ is_popup_var }}" value="1"/>{% endif %}
+                {% if to_field %}<input type="hidden" name="{{ to_field_var }}" value="{{ to_field }}"/>{% endif %}
+                {% if save_on_top %}{% block submit_buttons_top %}{% submit_row %}{% endblock %}{% endif %}
+                {% if errors %}
+                    <div id="alert">
+                        <el-alert
+                                title="{% if errors|length == 1 %}
+                            {% trans "Please correct the error below." %}
+                        {% else %}
+                            {% trans "Please correct the errors below." %}
+                        {% endif %}"
+                                type="error">
+                        </el-alert>
+                    </div>
+                    {{ adminform.form.non_field_errors }}
+                {% endif %}
+
+                {% block field_sets %}
+                    {% for fieldset in adminform %}
+                        {% include "admin/includes/fieldset.html" %}
+                    {% endfor %}
+                {% endblock %}
+
+                {% block after_field_sets %}{% endblock %}
+
+                {% block inline_field_sets %}
+                    {% for inline_admin_formset in inline_admin_formsets %}
+                        {% include inline_admin_formset.opts.template %}
+                    {% endfor %}
+                {% endblock %}
+
+                {% block after_related_objects %}{% endblock %}
+
+                {% block submit_buttons_bottom %}{% submit_row %}{% endblock %}
+
+                {% block admin_change_form_document_ready %}
+                    <script type="text/javascript"
+                            id="django-admin-form-add-constants"
+                            src="{% static 'admin/js/change_form.js' %}"
+                            {% if adminform and add %}
+                            data-model-name="{{ opts.model_name }}"
+                            {% endif %}>
+                    </script>
+                    <script type="text/javascript">
+                        (function ($) {
+                            $('#id_city').change(function () {
+                                let p_id = $('#id_province').val();
+                                let c_id = $('#id_city').val();
+                                $.get('/district/', {"p": p_id, "c": c_id}, function (a_info) {
+                                    var area_info = $('#id_district').empty().append('<option value>' + '---------' + '</option>');
+                                    $.each(a_info, function (i, area) {
+                                        area_info.append('<option value="' + area + '">' + area + '</option>')
+                                    });
+                                    {% if change %}
+                                        $("#id_district").find("option:contains({{ original.district }})").attr('selected', true);
+                                    {% endif %}
+                                });
+                            });
+
+                            $('#id_province').change(function () {
+                                let p_id = $('#id_province').val();
+                                $.get('/city/', {'p': p_id}, function (c_info) {
+                                    var city_info = $('#id_city').empty().append('<option value>' + '---------' + '</option>');
+                                    $.each(c_info, function (i, city) {
+                                        city_info.append('<option value="' + city + '">' + city + '</option>')
+                                    });
+                                    {% if change %}
+                                        $("#id_city").find("option:contains({{ original.city }})").attr('selected', true);
+                                        $("#id_city").trigger("change");
+                                    {% endif %}
+                                });
+                            });
+
+                            $.get('/province/', function (p_info) {
+                                var province_info = $('#id_province').empty().append('<option value>' + '---------' + '</option>');
+                                $.each(p_info, function (i, province) {
+                                    province_info.append('<option value="' + province + '">' + province + '</option>')
+                                });
+                                {% if change %}
+                                    $("#id_province").find("option:contains({{ original.province }})").attr('selected', true);
+                                    $("#id_province").trigger("change");
+                                {% endif %}
+
+                                $('#id_province').val("北京市")
+                                $('#id_province').change()
+                                $('#id_city').val("深圳市")
+
+                            });
+
+
+                        })(django.jQuery);
+
+
+                    </script>
+
+                {% endblock %}
+
+                {# JavaScript for prepopulated fields #}
+                {% prepopulated_fields_js %}
+
+            </div>
+        </form>
+
+    </div>
+    <script type="text/javascript">
+        new Vue({
+            el: '.page-header',
+            methods: {
+                goBack: function () {
+                    window.location.href = '{% get_model_url %}'
+                }
+            }
+        })
+        if ($(".object-tools").length != 0) {
+            new Vue({
+                el: '.object-tools',
+                data: {
+                    dialogTableVisible: false,
+                    url: ''
+                },
+                methods: {
+                    go_url: function (url) {
+                        this.url = url;
+                        this.dialogTableVisible = true;
+                    }
+                }
+            })
+        }
+        if (document.getElementById('alert')) {
+            new Vue({
+                el: '#alert'
+            })
+        }
+    </script>
+{% endblock %}
