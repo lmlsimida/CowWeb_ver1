@@ -154,7 +154,7 @@ REST_FRAMEWORK = {
         "django_filters.rest_framework.DjangoFilterBackend",
     ],
     # 异常处理
-    "EXCEPTION_HANDLER": "djangoProject3.apps.utils.exception.exception_handler",
+    "EXCEPTION_HANDLER": "utils.exception.exception_handler",
 }
 
 # JWT配置
