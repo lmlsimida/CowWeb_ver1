@@ -18,16 +18,12 @@ class User(AbstractUser):
         "手机号码",
         max_length=11,
         unique=True,
-        help_text="手机号码",
         error_messages={"unique": "手机号码已注册", "max_length": "手机号码长度不正确"},
         validators=[validate_mobile],
+        null=True,
+        default=None,
     )
-    name = models.CharField(
-        "姓名",
-        max_length=11,
-        help_text="姓名",
-        error_messages={"max_length": "姓名长度不正确"},
-    )
+    name = models.CharField("姓名", max_length=11)
     level = models.IntegerField("等级", choices=LEVELS, default=3)
     pasture = models.ForeignKey(
         Pasture,
@@ -36,7 +32,7 @@ class User(AbstractUser):
         null=True,
         related_name="users",
     )
-    REQUIRED_FIELDS = ["mobile", "name"]  # 在通过 createsuperuser 管理命令创建用户时，将提示输入mobile字段
+    avatar = models.ImageField("头像", null=True, blank=True)
 
     def __str__(self):
         return self.username

@@ -17,6 +17,10 @@ LOCATION = helper.area
 
 
 class ProductViewSet(ReadOnlyModelViewSet):
+    """
+    只读历史数据视图集
+    """
+
     queryset = HistoryData.objects.filter(is_delete=False)
     serializer_class = ProductModelSerializer
     pagination_class = TenItemPerPagePagination
