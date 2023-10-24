@@ -3,13 +3,13 @@ from django.views.decorators.csrf import csrf_exempt
 from rest_framework.viewsets import ReadOnlyModelViewSet, ModelViewSet
 
 from apps.WebCloud import helper
-from apps.WebCloud.models import HistoryData, Cage, RFID, Feeding, CowCard
+from apps.WebCloud.models import HistoryData, Cage, RFID, FeedingStandard, Calf
 from apps.WebCloud.serializers import (
     ProductModelSerializer,
     CageModelSerializer,
     RFIDModelSerializer,
-    FeedingModelSerializer,
-    CowCardModelSerializer,
+    FeedingStandardModelSerializer,
+    CalfModelSerializer,
 )
 from utils.pagination import TenItemPerPagePagination
 
@@ -38,15 +38,15 @@ class RFIDViewSet(ReadOnlyModelViewSet):
     pagination_class = TenItemPerPagePagination
 
 
-class FeedingViewSet(ModelViewSet):
-    queryset = Feeding.objects.all()
-    serializer_class = FeedingModelSerializer
+class FeedingStandardViewSet(ModelViewSet):
+    queryset = FeedingStandard.objects.all()
+    serializer_class = FeedingStandardModelSerializer
     pagination_class = TenItemPerPagePagination
 
 
-class CowCardViewSet(ModelViewSet):
-    queryset = CowCard.objects.all()
-    serializer_class = CowCardModelSerializer
+class CalfViewSet(ModelViewSet):
+    queryset = Calf.objects.all()
+    serializer_class = CalfModelSerializer
     pagination_class = TenItemPerPagePagination
 
 

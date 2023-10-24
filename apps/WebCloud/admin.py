@@ -2,7 +2,7 @@ from django import forms
 from django.contrib import admin
 from django.contrib.auth.models import AnonymousUser
 
-from apps.WebCloud.models import Cage, CowCard, RFID, Feeding, HistoryData, Pasture
+from apps.WebCloud.models import Cage, RFID, HistoryData, Pasture, Calf, FeedingStandard
 
 
 class CustomModelAdmin(admin.ModelAdmin):
@@ -94,7 +94,7 @@ class RFIDAdmin(CustomModelAdmin):
     RFID 自定义admin
     """
 
-    list_display = ["rfid_id", "use_status"]  # 列表展示项
+    list_display = ["rfid_id"]  # 列表展示项
 
     def has_delete_permission(self, request, obj=None):
         """
@@ -124,24 +124,17 @@ class CageAdmin(CustomModelAdmin):
     list_display = ["cage_id", "area", "area_id", "descr"]  # 列表展示项
 
 
-@admin.register(CowCard)
-class CowCardAdmin(CustomModelAdmin):
+@admin.register(Calf)
+class CalfAdmin(CustomModelAdmin):
     """
     CowCardAdmin 自定义admin
     """
 
-    list_display = [
-        "cage_cow",
-        "rfid",
-        "cow_id",
-        "date_of_birth",
-        "cage_entry_date",
-        "cage_status",
-    ]  # 列表展示项
+    list_display = ["calf_id", "date_of_birth"]  # 列表展示项
 
 
-@admin.register(Feeding)
-class FeedingAdmin(CustomModelAdmin):
+@admin.register(FeedingStandard)
+class FeedingStandardAdmin(CustomModelAdmin):
     """
     Feeding 自定义admin
     """
@@ -176,7 +169,7 @@ class HistoryDataAdmin(CustomModelAdmin):
     历史数据 自定义 admin
     """
 
-    list_display = ["rfid", "cage", "cow", "day_of_birth", "area"]  # 列表展示项
+    list_display = ["rfid_id", "cage_id", "calf_id", "day_of_birth", "area"]  # 列表展示项
 
     def has_module_permission(self, request):
         """

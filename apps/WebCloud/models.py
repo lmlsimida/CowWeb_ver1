@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.db import models
 
 
@@ -6,10 +7,9 @@ class BaseModel(models.Model):
     基类，公共字段
     """
 
-    id = models.AutoField(verbose_name="id主键", primary_key=True, help_text="id主键")
-    c_time = models.DateTimeField("创建时间", auto_now_add=True)
-    u_time = models.DateTimeField("更新时间", auto_now=True)
-    is_delete = models.BooleanField("逻辑删除", default=False)
+    c_time = models.DateTimeField("创建时间", auto_now_add=True, db_index=True)
+    u_time = models.DateTimeField("更新时间", auto_now=True, db_index=True)
+    is_delete = models.BooleanField("逻辑删除", default=False, db_index=True)
 
     class Meta:
         # 抽象类，用于继承，迁移时不会创建
@@ -21,11 +21,13 @@ class Pasture(BaseModel):
     牧场类
     """
 
-    name = models.CharField("工厂名称", max_length=100, unique=True, help_text="工厂名称")
-    province = models.CharField(verbose_name="省份", max_length=25)
-    city = models.CharField(verbose_name="城市", max_length=25)
-    district = models.CharField(verbose_name="区/县", max_length=25)
-    address_detail = models.TextField(verbose_name="详细地址", max_length=500, default="")
+    name = models.CharField("牧场", max_length=100, unique=True)
+    province = models.CharField(verbose_name="省份", max_length=25, db_index=True)
+    city = models.CharField(verbose_name="城市", max_length=25, db_index=True)
+    district = models.CharField(verbose_name="区/县", max_length=25, db_index=True)
+    address_detail = models.TextField(
+        verbose_name="详细地址", max_length=500, default="", blank=True
+    )
 
     def __str__(self):
         return self.name
@@ -36,32 +38,255 @@ class Pasture(BaseModel):
         verbose_name_plural = verbose_name
 
 
+class RFID(models.Model):
+    """
+    RFID 类
+    """
+
+    rfid_id = models.CharField("RFID卡号", max_length=40, unique=True)
+    is_invalid = models.BooleanField("已作废", default=False, db_index=True)
+    pasture = models.ForeignKey(
+        Pasture, verbose_name="牧场", on_delete=models.CASCADE, related_name="rfids"
+    )
+
+    def __str__(self):
+        return self.rfid_id
+
+    @property
+    def is_bound(self):
+        """
+        是否已绑定
+        """
+        return self.rfid_cage.exists()
+
+    def check_useful(self):
+        """
+        检查是否可用
+        """
+        if self.is_bound:
+            raise ValidationError("该RFID卡已经绑定了笼子!")
+        if self.is_invalid:
+            raise ValidationError("该RFID卡已经废弃!")
+
+    def bound_cage(self, cage):
+        """
+        与犊牛笼绑定
+        """
+        self.check_useful()
+        if cage.is_bound:
+            raise ValidationError(f"犊牛笼({cage.cage_id})已经绑定RFID卡了!")
+
+        RFIDCage.objects.create(rfid=self, cage=cage)
+
+    class Meta:
+        db_table = "rfid"  # 表名
+        verbose_name = "RFID"  # 站点显示名
+        verbose_name_plural = verbose_name
+
+
+class Cage(models.Model):
+    """
+    犊牛笼类
+    """
+
+    # Cage_RFID = models.OneToOneField(RFID, on_delete=models.SET_DEFAULT, default=9999, help_text='RFID卡号')
+
+    cage_id = models.CharField("笼号编码", max_length=40, unique=True)
+    area = models.CharField(
+        "区域", max_length=10, null=True, blank=True, default="", db_index=True
+    )
+    area_id = models.CharField(
+        "区号", max_length=10, null=True, blank=True, default="", db_index=True
+    )
+    descr = models.CharField("备注", max_length=1000, null=True, blank=True, default="")
+    pasture = models.ForeignKey(
+        Pasture, verbose_name="牧场", on_delete=models.CASCADE, related_name="cages"
+    )
+
+    def __str__(self):
+        return self.cage_id
+
+    @property
+    def is_bound(self):
+        """
+        是否已绑定
+        """
+        return self.rfid_cage.exists()
+
+    def has_calf(self):
+        """
+        是否有犊牛了
+        """
+        return self.calf_cage.exists()
+
+    def bound_rfid(self, rfid):
+        """
+        与RFID卡绑定
+        """
+        rfid.check_useful()
+        if self.is_bound():
+            raise ValidationError("该笼子已经绑定RFID卡了!")
+
+        RFIDCage.objects.create(rfid=rfid, cage=self)
+
+    def put_calf(self, calf):
+        if not self.is_bound:
+            raise ValidationError("该笼子还未绑定RFID卡!")
+        if self.has_calf():
+            raise ValidationError("该笼子已经有犊牛了!")
+        if calf.is_in_cage:
+            raise ValidationError(f"犊牛({calf.calf_id})已经入过笼了!")
+        CalfCage.objects.create(calf=calf, cage=self)
+
+    class Meta:
+        db_table = "cage"  # 表名
+        verbose_name = "犊牛笼"  # 站点显示名
+        verbose_name_plural = verbose_name
+
+
+class RFIDCage(models.Model):
+    rfid = models.OneToOneField(
+        RFID,
+        verbose_name="RFID",
+        on_delete=models.CASCADE,
+        related_name="rfid_cage",
+        unique=True,
+    )
+    cage = models.OneToOneField(
+        Cage,
+        verbose_name="犊牛笼",
+        on_delete=models.CASCADE,
+        related_name="rfid_cage",
+        unique=True,
+    )
+
+    def __str__(self):
+        return f"{self.rfid.rfid_id}-{self.cage.cage_id}"
+
+    @classmethod
+    def bound(cls, rfid, cage):
+        """
+        绑定RFID卡与犊牛笼
+        """
+        if not (
+            cls.objects.filter(rfid=rfid).exists()
+            and cls.objects.filter(cage=cage).exists()
+        ):
+            cls.objects.create(rfid=rfid, cage=cage)
+
+    class Meta:
+        db_table = "rfid_cage"  # 表名
+        verbose_name = "RFID & 犊牛笼"  # 站点显示名
+        verbose_name_plural = verbose_name
+
+
+class Calf(models.Model):
+    """
+    犊牛
+    """
+
+    calf_id = models.CharField("犊牛耳标ID", max_length=40, unique=True)
+    date_of_birth = models.DateField("出生日期", db_index=True)
+    weight_day_add = models.IntegerField("日增重", default=1, db_index=True)
+    # Age_in_days = models.IntegerField('日龄', default=1, help_text='日龄')
+    adjusted_feeding = models.SmallIntegerField("临时调整饲喂量", default=0, db_index=True)
+    descr = models.CharField("备注", max_length=1000, null=True, blank=True, default="")
+    pasture = models.ForeignKey(
+        Pasture, verbose_name="牧场", on_delete=models.CASCADE, related_name="calves"
+    )
+
+    def __str__(self):
+        return self.calf_id
+
+    @property
+    def is_in_cage(self):
+        """
+        是否入笼
+        """
+        return self.calf_cage.exists()
+
+    @property
+    def cage_entry_time(self):
+        """
+        入笼时间
+        """
+        if self.is_in_cage():
+            return self.calf_cage.cage_entry_time
+
+    def enter_cage(self, cage):
+        """
+        入笼
+        """
+        if self.is_in_cage:
+            raise ValidationError("该犊牛已经在笼子里了!")
+        if cage.has_calf():
+            raise ValidationError(f"笼子({cage.cage_id})已经有犊牛了!")
+        CalfCage.objects.create(cage=cage, calf=self)
+
+    class Meta:
+        db_table = "calf"  # 表名
+        verbose_name = "犊牛"  # 站点显示名
+        verbose_name_plural = verbose_name
+
+
+class CalfCage(models.Model):
+    calf = models.OneToOneField(
+        Calf,
+        verbose_name="犊牛",
+        on_delete=models.CASCADE,
+        related_name="calf_cage",
+        unique=True,
+    )
+    cage = models.OneToOneField(
+        Cage,
+        verbose_name="犊牛笼",
+        on_delete=models.CASCADE,
+        related_name="calf_cage",
+        unique=True,
+    )
+    cage_entry_time = models.DateTimeField("入笼时间", auto_now_add=True, db_index=True)
+
+    def __str__(self):
+        return f"{self.calf.calf_id}-{self.cage.cage_id}"
+
+    class Meta:
+        db_table = "calf_cage"  # 表名
+        verbose_name = "犊牛 & 犊牛笼"  # 站点显示名
+        verbose_name_plural = verbose_name
+
+
+class FeedingStandard(models.Model):
+    feeding_age = models.SmallIntegerField("日龄", default=1, db_index=True)
+    feeding_total_feeding = models.SmallIntegerField("总饲喂量", default=50, db_index=True)
+    feeding_up = models.SmallIntegerField("饲喂比例", default=50, db_index=True)
+    pasture = models.ForeignKey(
+        Pasture,
+        verbose_name="牧场",
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="feeding_standards",
+    )
+
+    class Meta:
+        db_table = "feeding_standard"  # 表名
+        verbose_name = "饲喂标准"  # 站点显示名
+        verbose_name_plural = verbose_name
+
+
 class HistoryData(BaseModel):
     # 从设备上传至此表数据库
 
-    rfid = models.CharField("RFID卡号", max_length=40, help_text="RFID卡号")
-    cage = models.CharField("笼号编码", max_length=40, help_text="笼号编码")
-    cow = models.CharField("犊牛耳标ID", max_length=40, help_text="犊牛耳标ID")
-    day_of_birth = models.SmallIntegerField("日龄", null=False, help_text="日龄")
-    area = models.CharField(
-        "区域", max_length=10, null=True, blank=True, default="", help_text="区域"
-    )
-    area_id = models.CharField(
-        "区号", max_length=10, null=True, blank=True, default="", help_text="区号"
-    )
-    descr = models.CharField(
-        "备注", max_length=1000, null=True, blank=True, default="", help_text="备注"
-    )
-    adjusted_feeding = models.SmallIntegerField(
-        "临时调整饲喂量", default=0, help_text="临时调整饲喂量"
-    )
-    feeding_total_feeding = models.SmallIntegerField(
-        "总饲喂量", default=50, help_text="总前饲喂量"
-    )
-    temp = models.FloatField(
-        "饲喂温度", max_length=5, null=True, blank=True, default="", help_text="饲喂温度"
-    )
-    mae = models.SmallIntegerField("早晚班次", default=50, help_text="早晚班次")
+    rfid_id = models.CharField("RFID卡号", max_length=40)
+    cage_id = models.CharField("笼号编码", max_length=40)
+    calf_id = models.CharField("犊牛耳标ID", max_length=40)
+    day_of_birth = models.SmallIntegerField("日龄", null=False)
+    area = models.CharField("区域", max_length=10, null=True, blank=True, default="")
+    area_id = models.CharField("区号", max_length=10, null=True, blank=True, default="")
+    descr = models.CharField("备注", max_length=1000, null=True, blank=True, default="")
+    adjusted_feeding = models.SmallIntegerField("临时调整饲喂量", default=0)
+    feeding_total_feeding = models.SmallIntegerField("总饲喂量", default=50)
+    temp = models.FloatField("饲喂温度", max_length=5, null=True, blank=True, default="")
+    mae = models.SmallIntegerField("早晚班次", default=50)
     pasture = models.ForeignKey(
         Pasture,
         verbose_name="牧场",
@@ -75,117 +300,3 @@ class HistoryData(BaseModel):
         verbose_name = "历史加奶数据"
         verbose_name_plural = verbose_name
         ordering = ("-c_time",)
-
-
-class RFID(models.Model):
-    STATUS = ((1, "使用中"), (2, "未使用"), (3, "作废"))
-    rfid_id = models.CharField("RFID卡号", max_length=40, unique=True, help_text="RFID卡号")
-    use_status = models.SmallIntegerField(
-        "使用状态", choices=STATUS, default=1, help_text="使用状态:1-使用中,2-未使用,3-作废"
-    )
-    pasture = models.ForeignKey(
-        Pasture,
-        verbose_name="牧场",
-        on_delete=models.SET_NULL,
-        null=True,
-        related_name="rfids",
-    )
-
-    def __str__(self):
-        return self.rfid_id
-
-    class Meta:
-        db_table = "rfid"  # 表名
-        verbose_name = "RFID"  # 站点显示名
-        verbose_name_plural = verbose_name
-
-
-class Cage(models.Model):
-    # Cage_RFID = models.OneToOneField(RFID, on_delete=models.SET_DEFAULT, default=9999, help_text='RFID卡号')
-
-    cage_id = models.CharField("笼号编码", max_length=40, unique=True, help_text="笼号编码")
-    area = models.CharField(
-        "区域", max_length=10, null=True, blank=True, default="", help_text="区域"
-    )
-    area_id = models.CharField(
-        "区号", max_length=10, null=True, blank=True, default="", help_text="区号"
-    )
-    descr = models.CharField(
-        "备注", max_length=1000, null=True, blank=True, default="", help_text="备注"
-    )
-    pasture = models.ForeignKey(
-        Pasture,
-        verbose_name="牧场",
-        on_delete=models.SET_NULL,
-        null=True,
-        related_name="cages",
-    )
-
-    def __str__(self):
-        return self.cage_id
-
-    class Meta:
-        db_table = "cage"  # 表名
-        verbose_name = "笼"  # 站点显示名
-        verbose_name_plural = verbose_name
-
-
-class Feeding(models.Model):
-    feeding_age = models.SmallIntegerField("日龄", default=1, help_text="日龄")
-    feeding_total_feeding = models.SmallIntegerField(
-        "总饲喂量", default=50, help_text="总前饲喂量"
-    )
-    feeding_up = models.SmallIntegerField("饲喂比例", default=50, help_text="饲喂比例")
-    pasture = models.ForeignKey(
-        Pasture,
-        verbose_name="牧场",
-        on_delete=models.SET_NULL,
-        null=True,
-        related_name="feedings",
-    )
-
-    class Meta:
-        db_table = "feeding"  # 表名
-        verbose_name = "喂养"  # 站点显示名
-        verbose_name_plural = verbose_name
-
-
-class CowCard(models.Model):
-    STATUS = ((1, "出笼"), (2, "入笼"))
-    cage_cow = models.OneToOneField(
-        Cage, on_delete=models.SET_DEFAULT, default=9999, help_text="入住笼号"
-    )
-    rfid = models.OneToOneField(
-        RFID, on_delete=models.SET_DEFAULT, default=9999, help_text="RFID卡号"
-    )
-
-    cow_id = models.CharField("犊牛耳标ID", max_length=40, unique=True, help_text="犊牛耳标ID")
-    date_of_birth = models.DateField("出生日期", null=False, help_text="出生日期")
-    cage_entry_date = models.DateField("入笼日期", null=True, help_text="入笼日期")
-    cage_out_date = models.DateField("出笼日期", null=True, help_text="出笼日期")
-    weight_day_add = models.IntegerField("日增重", default=1, help_text="日增重")
-    # Age_in_days = models.IntegerField('日龄', default=1, help_text='日龄')
-    adjusted_feeding = models.SmallIntegerField(
-        "临时调整饲喂量", default=0, help_text="临时调整饲喂量"
-    )
-    descr = models.CharField(
-        "备注", max_length=1000, null=True, blank=True, default="", help_text="备注"
-    )
-    cage_status = models.SmallIntegerField(
-        "入笼状态", choices=STATUS, default=1, help_text="入笼状态:1-出笼,2-入笼"
-    )
-    pasture = models.ForeignKey(
-        Pasture,
-        verbose_name="牧场",
-        on_delete=models.SET_NULL,
-        null=True,
-        related_name="cow_cards",
-    )
-
-    def __str__(self):
-        return self.cow_id
-
-    class Meta:
-        db_table = "cow_card"  # 表名
-        verbose_name = "犊牛卡"  # 站点显示名
-        verbose_name_plural = verbose_name
