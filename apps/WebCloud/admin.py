@@ -2,7 +2,16 @@ from django import forms
 from django.contrib import admin
 from django.contrib.auth.models import AnonymousUser
 
-from apps.WebCloud.models import Cage, RFID, HistoryData, Pasture, Calf, FeedingStandard
+from apps.WebCloud.models import (
+    Cage,
+    RFID,
+    HistoryData,
+    Pasture,
+    Calf,
+    FeedingStandard,
+    RFIDCage,
+    CalfCage,
+)
 
 
 class CustomModelAdmin(admin.ModelAdmin):
@@ -170,6 +179,36 @@ class HistoryDataAdmin(CustomModelAdmin):
     """
 
     list_display = ["rfid_id", "cage_id", "calf_id", "day_of_birth", "area"]  # 列表展示项
+
+    def has_module_permission(self, request):
+        """
+        只有管理员可以管理
+        """
+        return request.user.is_superuser
+
+
+@admin.register(RFIDCage)
+class RFIDCageAdmin(CustomModelAdmin):
+    """
+    RFID & Cage自定义 admin
+    """
+
+    list_display = ["rfid", "cage"]  # 列表展示项
+
+    def has_module_permission(self, request):
+        """
+        只有管理员可以管理
+        """
+        return request.user.is_superuser
+
+
+@admin.register(CalfCage)
+class CalfCageAdmin(CustomModelAdmin):
+    """
+    Calf & age自定义 admin
+    """
+
+    list_display = ["cage", "calf"]  # 列表展示项
 
     def has_module_permission(self, request):
         """
