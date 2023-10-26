@@ -4,6 +4,7 @@ django-cors-headers
 djangorestframework
 djangorestframework-simplejwt
 django-simpleui
+ipython
 django-extensions
 pymysql
 django-filter

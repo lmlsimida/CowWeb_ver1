@@ -1,5 +1,9 @@
-from django.core.exceptions import ValidationError
+from datetime import date
+from typing import Optional
+
+# from django.core.exceptions import ValidationError
 from django.db import models
+from rest_framework.exceptions import ValidationError
 
 
 class BaseModel(models.Model):
@@ -53,11 +57,11 @@ class RFID(models.Model):
         return self.rfid_id
 
     @property
-    def is_bound(self):
+    def is_bound(self) -> bool:
         """
         是否已绑定
         """
-        return self.rfid_cage.exists()
+        return RFIDCage.check_bound(self)
 
     def check_useful(self):
         """
@@ -77,6 +81,39 @@ class RFID(models.Model):
             raise ValidationError(f"犊牛笼({cage.cage_id})已经绑定RFID卡了!")
 
         RFIDCage.objects.create(rfid=self, cage=cage)
+
+    @property
+    def cage(self):
+        """
+        获取RFID绑定的犊牛笼
+        """
+        if not self.is_bound:
+            raise ValidationError("该RFID卡未绑定笼子!")
+        return self.rfid_cage.cage
+
+    @property
+    def calf(self):
+        """
+        获取RFID绑定的犊牛笼的犊牛
+        """
+        if not self.is_bound:
+            raise ValidationError("该RFID卡未绑定笼子!")
+        cage = self.rfid_cage.cage
+        return cage.calf
+
+    @property
+    def feeding_standard(self):
+        """
+        获取RFID绑定的犊牛笼的犊牛的喂养标准
+        """
+        return self.calf.feeding_standard
+
+    @property
+    def history_data(self):
+        """
+        历史数据
+        """
+        return HistoryData.objects.filter(rfid_id=self.rfid_id).first()
 
     class Meta:
         db_table = "rfid"  # 表名
@@ -107,24 +144,33 @@ class Cage(models.Model):
         return self.cage_id
 
     @property
-    def is_bound(self):
+    def is_bound(self) -> bool:
         """
         是否已绑定
         """
-        return self.rfid_cage.exists()
+        return RFIDCage.check_bound(cage=self)
 
-    def has_calf(self):
+    def has_calf(self) -> bool:
         """
         是否有犊牛了
         """
-        return self.calf_cage.exists()
+        return CalfCage.check_bound(cage=self)
+
+    @property
+    def calf(self):
+        """
+        笼中的犊牛
+        """
+        if not self.has_calf():
+            raise ValidationError("该犊牛笼没有牛!")
+        return self.calf_cage.calf
 
     def bound_rfid(self, rfid):
         """
         与RFID卡绑定
         """
         rfid.check_useful()
-        if self.is_bound():
+        if self.is_bound:
             raise ValidationError("该笼子已经绑定RFID卡了!")
 
         RFIDCage.objects.create(rfid=rfid, cage=self)
@@ -164,7 +210,7 @@ class RFIDCage(models.Model):
         return f"{self.rfid.rfid_id}-{self.cage.cage_id}"
 
     @classmethod
-    def bound(cls, rfid, cage):
+    def bound(cls, rfid: RFID, cage: Cage):
         """
         绑定RFID卡与犊牛笼
         """
@@ -173,6 +219,15 @@ class RFIDCage(models.Model):
             and cls.objects.filter(cage=cage).exists()
         ):
             cls.objects.create(rfid=rfid, cage=cage)
+
+    @classmethod
+    def check_bound(
+        cls, rfid: Optional[RFID] = None, cage: Optional[Cage] = None
+    ) -> bool:
+        if rfid:
+            return cls.objects.filter(rfid=rfid).exists()
+        if cage:
+            return cls.objects.filter(cage=cage).exists()
 
     class Meta:
         db_table = "rfid_cage"  # 表名
@@ -199,18 +254,18 @@ class Calf(models.Model):
         return self.calf_id
 
     @property
-    def is_in_cage(self):
+    def is_in_cage(self) -> bool:
         """
         是否入笼
         """
-        return self.calf_cage.exists()
+        return CalfCage.check_bound(self)
 
     @property
     def cage_entry_time(self):
         """
         入笼时间
         """
-        if self.is_in_cage():
+        if self.is_in_cage:
             return self.calf_cage.cage_entry_time
 
     def enter_cage(self, cage):
@@ -222,6 +277,20 @@ class Calf(models.Model):
         if cage.has_calf():
             raise ValidationError(f"笼子({cage.cage_id})已经有犊牛了!")
         CalfCage.objects.create(cage=cage, calf=self)
+
+    @property
+    def feeding_standard(self):
+        """
+        饲养标准
+        """
+        return FeedingStandard.get_calf_standard(self)
+
+    @property
+    def age_in_days(self) -> int:
+        """
+        日龄
+        """
+        return (date.today() - self.date_of_birth).days
 
     class Meta:
         db_table = "calf"  # 表名
@@ -249,6 +318,15 @@ class CalfCage(models.Model):
     def __str__(self):
         return f"{self.calf.calf_id}-{self.cage.cage_id}"
 
+    @classmethod
+    def check_bound(
+        cls, calf: Optional[Calf] = None, cage: Optional[Cage] = None
+    ) -> bool:
+        if calf:
+            return cls.objects.filter(calf=calf).exists()
+        if cage:
+            return cls.objects.filter(cage=cage).exists()
+
     class Meta:
         db_table = "calf_cage"  # 表名
         verbose_name = "犊牛 & 犊牛笼"  # 站点显示名
@@ -266,6 +344,12 @@ class FeedingStandard(models.Model):
         null=True,
         related_name="feeding_standards",
     )
+
+    @classmethod
+    def get_calf_standard(cls, calf: Calf):
+        return cls.objects.filter(
+            feeding_age=calf.age_in_days, pasture=calf.pasture
+        ).first()
 
     class Meta:
         db_table = "feeding_standard"  # 表名
