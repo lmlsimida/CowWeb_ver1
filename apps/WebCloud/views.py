@@ -1,3 +1,5 @@
+from datetime import date
+
 from django.db.models import Count
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -7,7 +9,14 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet, ModelViewSet
 
 from apps.WebCloud import helper
-from apps.WebCloud.models import HistoryData, Cage, RFID, FeedingStandard, Calf
+from apps.WebCloud.models import (
+    HistoryData,
+    Cage,
+    RFID,
+    FeedingStandard,
+    Calf,
+    CalfCage,
+)
 from apps.WebCloud.serializers import (
     HistoryDataModelSerializer,
     CageModelSerializer,
@@ -55,7 +64,7 @@ class HistoryDataViewSet(ReadOnlyModelViewSet):
     queryset = HistoryData.objects.filter(is_delete=False)
     serializer_class = HistoryDataModelSerializer
     pagination_class = TenItemPerPagePagination
-    filterset_fields = ["rfid_id", "pasture"]
+    filterset_fields = ["rfid_id", "pasture"]  # 筛选选项
 
 
 class CageViewSet(ModelViewSet):
@@ -66,14 +75,14 @@ class CageViewSet(ModelViewSet):
     queryset = Cage.objects.all()
     serializer_class = CageModelSerializer
     pagination_class = TenItemPerPagePagination
-    filterset_fields = ["pasture"]
+    filterset_fields = ["pasture"]  # 筛选选项
 
 
 class RFIDViewSet(ReadOnlyModelViewSet):
     queryset = RFID.objects.all()
     serializer_class = RFIDModelSerializer
     pagination_class = TenItemPerPagePagination
-    filterset_fields = ["rfid_id", "pasture"]
+    filterset_fields = ["rfid_id", "pasture"]  # 筛选选项
     lookup_field = "rfid_id"
 
     @action(methods=["GET"], url_path="all-data", detail=True)
@@ -107,21 +116,61 @@ class FeedingStandardViewSet(ModelViewSet):
     queryset = FeedingStandard.objects.all()
     serializer_class = FeedingStandardModelSerializer
     pagination_class = TenItemPerPagePagination
-    filterset_fields = ["pasture"]
+    filterset_fields = ["pasture"]  # 筛选选项
 
 
 class CalfViewSet(ModelViewSet):
     queryset = Calf.objects.all()
     serializer_class = CalfModelSerializer
     pagination_class = TenItemPerPagePagination
-    filterset_fields = ["pasture"]
+    filterset_fields = ["pasture", "date_of_birth"]  # 筛选选项
 
-    @action(methods=["GET"], url_path="born-count-per-day", detail=False)
-    def born_count_per_day(self, request, *args, **kwargs):
+    @action(methods=["GET"], url_path="born-count", detail=False)
+    def born_count(self, request, *args, **kwargs):
+        """
+        每日出生量
+        """
         queryset = self.filter_queryset(self.get_queryset())
         result = (
             queryset.values("date_of_birth")  # 分组依据
             .annotate(birth_count=Count("id"))  # 计算每组的数量
             .order_by("date_of_birth")  # 可选，根据需要排序
         )
-        return Response(result)
+        return Response({"data": result})
+
+    @action(methods=["GET"], url_path="feeding-count", detail=False)
+    def feeding_count(self, request, *args, **kwargs):
+        """
+        总饲喂量
+        """
+        queryset = self.filter_queryset(self.get_queryset())
+        result = (
+            queryset.values("date_of_birth")  # 分组依据
+            .annotate(birth_count=Count("id"))  # 计算每组的数量
+            .order_by("date_of_birth")  # 可选，根据需要排序
+        )
+        for i in result:
+            feeding_standard: FeedingStandard = FeedingStandard.objects.filter(
+                feeding_age=(date.today() - i["date_of_birth"]).days
+            ).first()
+            if feeding_standard:
+                i["feeding_count"] = feeding_standard.feeding_total_feeding * i.pop(
+                    "birth_count"
+                )
+                i["date"] = feeding_standard.get_feeding_date(i.pop("date_of_birth"))
+
+        return Response({"data": result})
+
+    @action(methods=["GET"], url_path="in-cage-count", detail=False)
+    def in_cage_count(self, request, *args, **kwargs):
+        """
+        当前在笼中的牛公母数
+        """
+        queryset = self.filter_queryset(self.get_queryset())
+        # 分组并计算数量
+        result = (
+            CalfCage.objects.filter(calf__in=queryset)
+            .values("calf__sex")
+            .annotate(total_count=Count("calf"))
+        )
+        return Response({"data": result})

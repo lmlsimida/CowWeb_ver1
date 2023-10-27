@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, timedelta
 from typing import Optional
 
 # from django.core.exceptions import ValidationError
@@ -240,8 +240,10 @@ class Calf(models.Model):
     犊牛
     """
 
+    SEXES = ((1, "公"), (2, "母"))
     calf_id = models.CharField("犊牛耳标ID", max_length=40, unique=True)
     date_of_birth = models.DateField("出生日期", db_index=True)
+    sex = models.SmallIntegerField("性别", choices=SEXES, default=2, db_index=True)
     weight_day_add = models.IntegerField("日增重", default=1, db_index=True)
     # Age_in_days = models.IntegerField('日龄', default=1, help_text='日龄')
     adjusted_feeding = models.SmallIntegerField("临时调整饲喂量", default=0, db_index=True)
@@ -334,6 +336,10 @@ class CalfCage(models.Model):
 
 
 class FeedingStandard(models.Model):
+    """
+    饲喂标准
+    """
+
     feeding_age = models.SmallIntegerField("日龄", default=1, db_index=True)
     feeding_total_feeding = models.SmallIntegerField("总饲喂量", default=50, db_index=True)
     feeding_up = models.SmallIntegerField("饲喂比例", default=50, db_index=True)
@@ -351,10 +357,18 @@ class FeedingStandard(models.Model):
             feeding_age=calf.age_in_days, pasture=calf.pasture
         ).first()
 
+    @property
+    def calves(self):
+        return Calf.objects.filter()
+
+    def get_feeding_date(self, birthday):
+        return birthday + timedelta(self.feeding_age)
+
     class Meta:
         db_table = "feeding_standard"  # 表名
         verbose_name = "饲喂标准"  # 站点显示名
         verbose_name_plural = verbose_name
+        unique_together = [["feeding_age", "pasture"]]  # 联合唯一
 
 
 class HistoryData(BaseModel):

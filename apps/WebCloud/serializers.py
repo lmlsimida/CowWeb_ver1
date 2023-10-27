@@ -1,6 +1,13 @@
 from rest_framework import serializers
 
-from apps.WebCloud.models import HistoryData, Cage, RFID, FeedingStandard, Calf
+from apps.WebCloud.models import (
+    HistoryData,
+    Cage,
+    RFID,
+    FeedingStandard,
+    Calf,
+    CalfCage,
+)
 
 
 class HistoryDataModelSerializer(serializers.ModelSerializer):
@@ -30,4 +37,10 @@ class FeedingStandardModelSerializer(serializers.ModelSerializer):
 class CalfModelSerializer(serializers.ModelSerializer):
     class Meta:
         model = Calf
+        fields = "__all__"  # 表示序列化数据库中的所有字段
+
+
+class CalfCageModelSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CalfCage
         fields = "__all__"  # 表示序列化数据库中的所有字段
