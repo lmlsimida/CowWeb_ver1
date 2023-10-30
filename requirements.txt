@@ -9,3 +9,5 @@ django-extensions
 pymysql
 django-filter
 pillow
+drf-yasg
+cryptography

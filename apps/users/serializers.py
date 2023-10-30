@@ -108,7 +108,6 @@ class UserSerializer(serializers.ModelSerializer):
             "is_superuser",
             "name",
             "date_joined",
-            "roles",
         ]
         extra_kwargs = {"password": {"write_only": True}}  # 展示的时候不渲染密码
 
