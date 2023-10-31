@@ -52,6 +52,13 @@ class SimplePostView(APIView):
         # 返回响应
         return Response({"data": data})
 
+    def get(self, request, *args, **kwargs):
+        data = request.query_params  # 获取POST数据
+        # 在这里处理数据，例如：
+
+        # 返回响应
+        return Response({"data": data})
+
 
 urlpatterns = [
     path(
