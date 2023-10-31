@@ -20,9 +20,17 @@ services:
       - uwsgi-socket:/tmp
       - static-files:/app/static
       - ./entrypoint.sh:/app/entrypoint.sh  # 挂载 entrypoint.sh 到容器
+      - ./certs:/etc/letsencrypt  # 用于存储证书
     depends_on:
       - web
     restart: always
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - ./certs:/etc/letsencrypt  # 用于存储证书
+    depends_on:
+      - nginx-backend
 volumes:
   uwsgi-socket:
   static-files:
+  certs:  # 用于存储证书
