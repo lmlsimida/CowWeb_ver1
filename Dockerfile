@@ -11,7 +11,7 @@ WORKDIR /app
 COPY uwsgi.ini /etc/uwsgi/
 
 # 暴露端口
-EXPOSE 8000
+EXPOSE 80
 RUN chmod 777 /tmp
 # 复制应用到容器中
 COPY . /app
