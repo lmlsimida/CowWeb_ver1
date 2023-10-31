@@ -13,12 +13,16 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+
 from django.contrib import admin
 from django.urls import path, include
 from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from rest_framework import permissions
+from rest_framework.response import Response
 from rest_framework.routers import DefaultRouter
+from rest_framework.views import APIView
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from apps.WebCloud.views import choose_province, choose_city, choose_district
 from apps.users.views import UserViewSet
@@ -38,6 +42,17 @@ schema_view = get_schema_view(
     public=True,
     permission_classes=[permissions.AllowAny],
 )
+
+
+class SimplePostView(APIView):
+    def post(self, request, *args, **kwargs):
+        data = request.data  # 获取POST数据
+        # 在这里处理数据，例如：
+
+        # 返回响应
+        return Response({"data": data})
+
+
 urlpatterns = [
     path(
         "swagger<format>/", schema_view.without_ui(cache_timeout=0), name="schema-json"
@@ -49,10 +64,22 @@ urlpatterns = [
     ),
     path("redoc/", schema_view.with_ui("redoc", cache_timeout=0), name="schema-redoc"),
     path("admin/", admin.site.urls),
-    path("users/", include("apps.users.urls")),
-    path("", include("apps.WebCloud.urls")),
-    # 省/市/区域联动
-    path("province/", choose_province),
-    path("city/", choose_city),
-    path("district/", choose_district),
+    path(
+        "api/",
+        include(
+            [
+                path("token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
+                path(
+                    "token/refresh/", TokenRefreshView.as_view(), name="token_refresh"
+                ),
+                path("users/", include("apps.users.urls")),
+                path("", include("apps.WebCloud.urls")),
+                path("health-cards/", SimplePostView.as_view(), name="health_card"),
+                # 省/市/区域联动
+                path("province/", choose_province),
+                path("city/", choose_city),
+                path("district/", choose_district),
+            ]
+        ),
+    ),
 ]

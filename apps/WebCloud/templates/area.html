@@ -100,7 +100,7 @@
                             $('#id_city').change(function () {
                                 let p_id = $('#id_province').val();
                                 let c_id = $('#id_city').val();
-                                $.get('/district/', {"p": p_id, "c": c_id}, function (a_info) {
+                                $.get('/api/district/', {"p": p_id, "c": c_id}, function (a_info) {
                                     var area_info = $('#id_district').empty().append('<option value>' + '---------' + '</option>');
                                     $.each(a_info, function (i, area) {
                                         area_info.append('<option value="' + area + '">' + area + '</option>')
@@ -113,7 +113,7 @@
 
                             $('#id_province').change(function () {
                                 let p_id = $('#id_province').val();
-                                $.get('/city/', {'p': p_id}, function (c_info) {
+                                $.get('/api/city/', {'p': p_id}, function (c_info) {
                                     var city_info = $('#id_city').empty().append('<option value>' + '---------' + '</option>');
                                     $.each(c_info, function (i, city) {
                                         city_info.append('<option value="' + city + '">' + city + '</option>')
@@ -125,7 +125,7 @@
                                 });
                             });
 
-                            $.get('/province/', function (p_info) {
+                            $.get('/api/province/', function (p_info) {
                                 var province_info = $('#id_province').empty().append('<option value>' + '---------' + '</option>');
                                 $.each(p_info, function (i, province) {
                                     province_info.append('<option value="' + province + '">' + province + '</option>')

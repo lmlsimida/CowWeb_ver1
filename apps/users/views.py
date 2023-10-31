@@ -25,3 +25,4 @@ class UserViewSet(ModelViewSet):
     queryset = User.objects.all().order_by('-date_joined')  # 按创建时间倒序
     permission_classes = [IsAuthenticated]
     pagination_class = TenItemPerPagePagination
+

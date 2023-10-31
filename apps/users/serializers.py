@@ -81,17 +81,15 @@ class UserRegisterSerializer(serializers.ModelSerializer):
 
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
-    def validate(self, attrs):
-        data = super().validate(attrs)
-        data["token"] = data.pop("access")
-        data["userInfo"] = {
-            "userId": self.user.id,
-            "userName": self.user.name or "匿名",
-            "dashboard": "0",
-            "is_superuser": self.user.is_superuser,
-            "role": self.user.roles and self.user.roles.split(",") or [],
-        }
-        return data
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+
+        # Add custom claims
+        token["name"] = user.name
+        # ...
+
+        return token
 
 
 class UserSerializer(serializers.ModelSerializer):
