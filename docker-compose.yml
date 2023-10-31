@@ -14,7 +14,7 @@ services:
   nginx-backend:
     image: nginx
     ports:
-      - "80:80"
+      - "8000:8000"
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/backend.conf
       - uwsgi-socket:/tmp
