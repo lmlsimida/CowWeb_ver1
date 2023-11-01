@@ -7,6 +7,7 @@ from apps.WebCloud.models import (
     FeedingStandard,
     Calf,
     CalfCage,
+    RemainingMilk,
 )
 
 
@@ -43,4 +44,10 @@ class CalfModelSerializer(serializers.ModelSerializer):
 class CalfCageModelSerializer(serializers.ModelSerializer):
     class Meta:
         model = CalfCage
+        fields = "__all__"  # 表示序列化数据库中的所有字段
+
+
+class RemainingMilkModelSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RemainingMilk
         fields = "__all__"  # 表示序列化数据库中的所有字段

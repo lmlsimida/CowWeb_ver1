@@ -1,11 +1,14 @@
-from datetime import date
+from datetime import date, datetime
 
-from django.db.models import Count
+from django.db.models import Count, QuerySet
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework.viewsets import ReadOnlyModelViewSet, ModelViewSet
 
 from apps.WebCloud import helper
@@ -16,6 +19,7 @@ from apps.WebCloud.models import (
     FeedingStandard,
     Calf,
     CalfCage,
+    RemainingMilk,
 )
 from apps.WebCloud.serializers import (
     HistoryDataModelSerializer,
@@ -23,6 +27,7 @@ from apps.WebCloud.serializers import (
     RFIDModelSerializer,
     FeedingStandardModelSerializer,
     CalfModelSerializer,
+    RemainingMilkModelSerializer,
 )
 from utils.pagination import TenItemPerPagePagination
 
@@ -124,6 +129,13 @@ class CalfViewSet(ModelViewSet):
     serializer_class = CalfModelSerializer
     pagination_class = TenItemPerPagePagination
     filterset_fields = ["pasture", "date_of_birth"]  # 筛选选项
+    permission_classes = [IsAuthenticated]
+
+    def get_current_pasture_queryset(self) -> QuerySet:
+        """
+        获取当前用户所在牧场的数据
+        """
+        return self.queryset.filter(pasture=self.request.user.pasture)
 
     @action(methods=["GET"], url_path="born-count", detail=False)
     def born_count(self, request, *args, **kwargs):
@@ -161,6 +173,30 @@ class CalfViewSet(ModelViewSet):
 
         return Response({"data": result})
 
+    @staticmethod
+    def get_today_feeding_count(queryset) -> int:
+        """
+        获取今日总饲喂量
+        """
+        result = (
+            queryset.values("date_of_birth")  # 分组依据
+            .annotate(birth_count=Count("id"))  # 计算每组的数量
+            .order_by("date_of_birth")  # 可选，根据需要排序
+        )
+        count = 0
+        for i in result:
+            feeding_standard: FeedingStandard = FeedingStandard.objects.filter(
+                feeding_age=(date.today() - i["date_of_birth"]).days
+            ).first()
+            if feeding_standard:
+                if datetime.today() == feeding_standard.get_feeding_date(
+                    i.pop("date_of_birth")
+                ):
+                    count += feeding_standard.feeding_total_feeding * i.pop(
+                        "birth_count"
+                    )
+        return count
+
     @action(methods=["GET"], url_path="in-cage-count", detail=False)
     def in_cage_count(self, request, *args, **kwargs):
         """
@@ -174,3 +210,81 @@ class CalfViewSet(ModelViewSet):
             .annotate(total_count=Count("calf"))
         )
         return Response({"data": result})
+
+    @action(methods=["GET"], url_path="summary", detail=False)
+    def summary(self, request, *args, **kwargs):
+        data_sub = [
+            {
+                "id": 1,
+                "name": "1类",
+                "data": [{"id": "1", "alias": "设备1", "val": "100"}],
+            }
+        ]
+        calf_count_query_data = (
+            CalfCage.objects.filter(calf__pasture=request.user.pasture)
+            .values("calf__sex")
+            .annotate(total=Count("calf"))
+            .order_by("calf__sex")
+        )
+        current_pasture_queryset = self.get_current_pasture_queryset()
+        # 初始化变量
+        male_count = 0
+        female_count = 0
+
+        # 遍历查询结果，将公牛和母牛的数量分别存到不同的变量中
+        for item in calf_count_query_data:
+            if item["calf__sex"] == 1:  # 公牛
+                male_count = item["total"]
+            elif item["calf__sex"] == 2:  # 母牛
+                female_count = item["total"]
+        milk = self.get_today_feeding_count(current_pasture_queryset)
+        data_gain = {
+            "total": male_count + male_count,
+            "totalM": male_count,
+            "totalF": female_count,
+            "totalH": 0,
+            "born": current_pasture_queryset.filter(
+                date_of_birth=datetime.today()
+            ).count(),
+            "milk": milk,
+        }
+        data = {
+            "status": "100",
+            "authority": request.user.level,
+            "htime": str(datetime.today()),
+            "result": {
+                "data": {
+                    "dataSub": data_sub,
+                    "dataGain": data_gain,
+                    "dataAlarm": {"alarm": 0},
+                }
+            },
+        }
+
+        return Response(data)
+
+
+class RemainingMilkViewSet(ModelViewSet):
+    """
+    剩余奶量视图集
+    """
+
+    queryset = RemainingMilk.objects.all()
+    serializer_class = RemainingMilkModelSerializer
+    pagination_class = TenItemPerPagePagination
+    filterset_fields = ["pasture"]  # 筛选选项
+
+    def create(self, request, *args, **kwargs):
+        """
+        新建，传递列表可批量创建
+        """
+        data = request.data
+        if isinstance(data, list):
+            serializer = self.get_serializer(data=data, many=True)
+        else:
+            serializer = self.get_serializer(data=data)
+
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(None, status=status.HTTP_201_CREATED, headers=headers)

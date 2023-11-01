@@ -371,6 +371,28 @@ class FeedingStandard(models.Model):
         unique_together = [["feeding_age", "pasture"]]  # 联合唯一
 
 
+class RemainingMilk(BaseModel):
+    rfid = models.ForeignKey(
+        RFID,
+        verbose_name="rfid",
+        on_delete=models.CASCADE,
+        related_name="remaining_milks",
+    )
+    pasture = models.ForeignKey(
+        Pasture,
+        verbose_name="牧场",
+        on_delete=models.CASCADE,
+        related_name="remaining_milks",
+    )
+    date = models.DateTimeField("时间", db_index=True)
+    milk_volume = models.FloatField("剩余奶量", default=0.0, db_index=True)
+
+    class Meta:
+        db_table = "remaining_milk"  # 表名
+        verbose_name = "犊牛剩余奶量"  # 站点显示名
+        verbose_name_plural = verbose_name
+
+
 class HistoryData(BaseModel):
     # 从设备上传至此表数据库
 
