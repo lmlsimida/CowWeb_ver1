@@ -48,6 +48,10 @@ class CalfCageModelSerializer(serializers.ModelSerializer):
 
 
 class RemainingMilkModelSerializer(serializers.ModelSerializer):
+    rfid = serializers.SlugRelatedField(
+        queryset=RFID.objects.all(), slug_field="rfid_id"  # 使用rfid_id做关联字段
+    )
+
     class Meta:
         model = RemainingMilk
         fields = "__all__"  # 表示序列化数据库中的所有字段
