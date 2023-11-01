@@ -213,6 +213,9 @@ class CalfViewSet(ModelViewSet):
 
     @action(methods=["GET"], url_path="summary", detail=False)
     def summary(self, request, *args, **kwargs):
+        """
+        当前用户所在牧场的犊牛相关汇总信息
+        """
         data_sub = [
             {
                 "id": 1,
