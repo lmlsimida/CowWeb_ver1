@@ -81,6 +81,35 @@ class CageViewSet(ModelViewSet):
     serializer_class = CageModelSerializer
     pagination_class = TenItemPerPagePagination
     filterset_fields = ["pasture"]  # 筛选选项
+    lookup_field = "cage_id"
+
+    @action(methods=["GET"], url_path="all-data", detail=True)
+    def all_data(self, request, *args, **kwargs):
+        """
+        获取犊牛的所有数据
+        """
+        instance: Cage = self.get_object()
+        if not instance.is_bound:
+            raise ValidationError("该犊牛笼未绑定RFID卡!")
+        if not instance.has_calf():
+            raise ValidationError("该犊牛笼中没有犊牛!")
+        calf_data = CageModelSerializer(instance=instance.calf).data  # 犊牛数据
+        rfid_data = RFIDModelSerializer(instance=instance.rfid).data  # RFID数据
+        feeding_standard_data = FeedingStandardModelSerializer(
+            instance=instance.feeding_standard
+        ).data  # 喂养标准数据
+        history_data = HistoryDataModelSerializer(
+            instance=instance.history_data, many=True
+        ).data  # 历史数据
+
+        return Response(
+            {
+                "calf_data": calf_data,
+                "rfid_data": rfid_data,
+                "feeding_standard_data": feeding_standard_data,
+                "history_data": history_data,
+            }
+        )
 
 
 class RFIDViewSet(ReadOnlyModelViewSet):
@@ -130,12 +159,39 @@ class CalfViewSet(ModelViewSet):
     pagination_class = TenItemPerPagePagination
     filterset_fields = ["pasture", "date_of_birth"]  # 筛选选项
     permission_classes = [IsAuthenticated]
+    lookup_field = "calf_id"
 
     def get_current_pasture_queryset(self) -> QuerySet:
         """
         获取当前用户所在牧场的数据
         """
         return self.queryset.filter(pasture=self.request.user.pasture)
+
+    @action(methods=["GET"], url_path="all-data", detail=True)
+    def all_data(self, request, *args, **kwargs):
+        """
+        获取犊牛的所有数据
+        """
+        instance: Calf = self.get_object()
+        if not instance.is_in_cage:
+            raise ValidationError("该犊牛未入笼!")
+        cage_data = CageModelSerializer(instance=instance.cage).data  # 犊牛笼数据
+        rfid_data = RFIDModelSerializer(instance=instance.rfid).data  # RFID数据
+        feeding_standard_data = FeedingStandardModelSerializer(
+            instance=instance.feeding_standard
+        ).data  # 喂养标准数据
+        history_data = HistoryDataModelSerializer(
+            instance=instance.history_data, many=True
+        ).data  # 历史数据
+
+        return Response(
+            {
+                "cage_data": cage_data,
+                "rfid_data": rfid_data,
+                "feeding_standard_data": feeding_standard_data,
+                "history_data": history_data,
+            }
+        )
 
     @action(methods=["GET"], url_path="born-count", detail=False)
     def born_count(self, request, *args, **kwargs):

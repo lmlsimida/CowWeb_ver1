@@ -150,6 +150,20 @@ class Cage(models.Model):
         """
         return RFIDCage.check_bound(cage=self)
 
+    @property
+    def rfid(self):
+        if not self.is_bound:
+            return None
+        return self.rfid_cage.rfid
+
+    @property
+    def feeding_standard(self):
+        return self.rfid.feeding_standard
+
+    @property
+    def history_data(self):
+        return self.rfid.history_data
+
     def has_calf(self) -> bool:
         """
         是否有犊牛了
@@ -256,6 +270,16 @@ class Calf(models.Model):
         return self.calf_id
 
     @property
+    def cage(self):
+        if not self.is_in_cage:
+            return None
+        return self.calf_cage.cage
+
+    @property
+    def rfid(self):
+        return self.cage.rfid
+
+    @property
     def is_in_cage(self) -> bool:
         """
         是否入笼
@@ -293,6 +317,10 @@ class Calf(models.Model):
         日龄
         """
         return (date.today() - self.date_of_birth).days
+
+    @property
+    def history_data(self):
+        return self.rfid.history_data
 
     class Meta:
         db_table = "calf"  # 表名
