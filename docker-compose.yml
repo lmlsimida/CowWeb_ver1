@@ -13,6 +13,8 @@ services:
 
   nginx-backend:
     image: nginx
+    environment:
+      - TZ=Asia/Shanghai
     ports:
       - "8000:8000"
     volumes:
