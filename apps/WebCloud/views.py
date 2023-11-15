@@ -377,7 +377,6 @@ class RFIDCageViewSet(ModelViewSet):
     queryset = RFIDCage.objects.all()
     serializer_class = RFIDCageModelSerializer
     pagination_class = TenItemPerPagePagination
-    filterset_fields = ["pasture"]  # 筛选选项
 
 
 class CalfCageViewSet(ModelViewSet):
@@ -388,4 +387,3 @@ class CalfCageViewSet(ModelViewSet):
     queryset = CalfCage.objects.all()
     serializer_class = CalfCageModelSerializer
     pagination_class = TenItemPerPagePagination
-    filterset_fields = ["pasture"]  # 筛选选项
