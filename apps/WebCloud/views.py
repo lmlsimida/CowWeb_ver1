@@ -308,7 +308,7 @@ class CalfViewSet(ModelViewSet):
             "milk": milk,
         }
         data = {
-            "status": "100",
+            "status": "200",
             "authority": request.user.level,
             "htime": str(datetime.today()),
             "result": {
