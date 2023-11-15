@@ -8,6 +8,7 @@ from apps.WebCloud.models import (
     Calf,
     CalfCage,
     RemainingMilk,
+    RFIDCage,
 )
 
 
@@ -41,12 +42,6 @@ class CalfModelSerializer(serializers.ModelSerializer):
         fields = "__all__"  # 表示序列化数据库中的所有字段
 
 
-class CalfCageModelSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = CalfCage
-        fields = "__all__"  # 表示序列化数据库中的所有字段
-
-
 class RemainingMilkModelSerializer(serializers.ModelSerializer):
     rfid = serializers.SlugRelatedField(
         queryset=RFID.objects.all(), slug_field="rfid_id"  # 使用rfid_id做关联字段
@@ -54,4 +49,30 @@ class RemainingMilkModelSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = RemainingMilk
+        fields = "__all__"  # 表示序列化数据库中的所有字段
+
+
+class RFIDCageModelSerializer(serializers.ModelSerializer):
+    rfid = serializers.SlugRelatedField(
+        queryset=RFID.objects.all(), slug_field="rfid_id"  # 使用rfid_id做关联字段
+    )
+    cage = serializers.SlugRelatedField(
+        queryset=Cage.objects.all(), slug_field="cage_id"  # 使用cage_id做关联字段
+    )
+
+    class Meta:
+        model = RFIDCage
+        fields = "__all__"  # 表示序列化数据库中的所有字段
+
+
+class CalfCageModelSerializer(serializers.ModelSerializer):
+    calf = serializers.SlugRelatedField(
+        queryset=Calf.objects.all(), slug_field="calf_id"  # 使用calf_id做关联字段
+    )
+    cage = serializers.SlugRelatedField(
+        queryset=Cage.objects.all(), slug_field="cage_id"  # 使用cage_id做关联字段
+    )
+
+    class Meta:
+        model = CalfCage
         fields = "__all__"  # 表示序列化数据库中的所有字段
