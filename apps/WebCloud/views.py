@@ -89,18 +89,30 @@ class CageViewSet(ModelViewSet):
         获取犊牛的所有数据
         """
         instance: Cage = self.get_object()
-        if not instance.is_bound:
-            raise ValidationError("该犊牛笼未绑定RFID卡!")
-        if not instance.has_calf():
-            raise ValidationError("该犊牛笼中没有犊牛!")
-        calf_data = CageModelSerializer(instance=instance.calf).data  # 犊牛数据
-        rfid_data = RFIDModelSerializer(instance=instance.rfid).data  # RFID数据
-        feeding_standard_data = FeedingStandardModelSerializer(
-            instance=instance.feeding_standard
-        ).data  # 喂养标准数据
-        history_data = HistoryDataModelSerializer(
-            instance=instance.history_data, many=True
-        ).data  # 历史数据
+        calf_data = None
+        rfid_data = None
+        feeding_standard_data = None
+        history_data = []
+        try:
+            calf_data = CageModelSerializer(instance=instance.calf).data  # 犊牛数据
+        except Exception:
+            pass
+        try:
+            rfid_data = RFIDModelSerializer(instance=instance.rfid).data  # RFID数据
+        except Exception:
+            pass
+        try:
+            feeding_standard_data = FeedingStandardModelSerializer(
+                instance=instance.feeding_standard
+            ).data  # 喂养标准数据
+        except Exception:
+            pass
+        try:
+            history_data = HistoryDataModelSerializer(
+                instance=instance.history_data, many=True
+            ).data  # 历史数据
+        except Exception:
+            pass
 
         return Response(
             {
