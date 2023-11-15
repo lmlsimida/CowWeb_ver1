@@ -5,7 +5,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework import status
 from rest_framework.decorators import action
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import ValidationError, APIException
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -32,6 +32,12 @@ from apps.WebCloud.serializers import (
 from utils.pagination import TenItemPerPagePagination
 
 LOCATION = helper.area
+
+
+class CustomException(APIException):
+    status_code = 200
+    default_detail = "错误"
+    default_code = "400"
 
 
 @csrf_exempt
@@ -138,7 +144,7 @@ class RFIDViewSet(ReadOnlyModelViewSet):
         """
         instance: RFID = self.get_object()
         if not instance.is_bound:
-            raise ValidationError("该RFID卡未绑定!")
+            raise CustomException("该RFID卡未绑定!")
         cage_data = CageModelSerializer(instance=instance.cage).data  # 犊牛笼数据
         calf_data = CalfModelSerializer(instance=instance.calf).data  # 犊牛数据
         feeding_standard_data = FeedingStandardModelSerializer(
@@ -186,7 +192,7 @@ class CalfViewSet(ModelViewSet):
         """
         instance: Calf = self.get_object()
         if not instance.is_in_cage:
-            raise ValidationError("该犊牛未入笼!")
+            raise CustomException("该犊牛未入笼!")
         cage_data = CageModelSerializer(instance=instance.cage).data  # 犊牛笼数据
         rfid_data = RFIDModelSerializer(instance=instance.rfid).data  # RFID数据
         feeding_standard_data = FeedingStandardModelSerializer(
