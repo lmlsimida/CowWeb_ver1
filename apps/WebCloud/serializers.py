@@ -33,7 +33,8 @@ class RFIDModelSerializer(serializers.ModelSerializer):
 class FeedingStandardModelSerializer(serializers.ModelSerializer):
     sex = serializers.SerializerMethodField()
 
-    def get_sex(self, obj):
+    @staticmethod
+    def get_sex(obj):
         """
         展示可读性别
         """
