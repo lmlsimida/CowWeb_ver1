@@ -258,9 +258,9 @@ class Calf(models.Model):
     calf_id = models.CharField("犊牛耳标ID", max_length=40, unique=True)
     date_of_birth = models.DateField("出生日期", db_index=True)
     sex = models.SmallIntegerField("性别", choices=SEXES, default=2, db_index=True)
-    weight_day_add = models.IntegerField("日增重", default=1, db_index=True)
+    weight_day_add = models.FloatField("日增重", default=1.0, db_index=True)
     # Age_in_days = models.IntegerField('日龄', default=1, help_text='日龄')
-    adjusted_feeding = models.SmallIntegerField("临时调整饲喂量", default=0, db_index=True)
+    adjusted_feeding = models.FloatField("临时调整饲喂量", default=0.0, db_index=True)
     descr = models.CharField("备注", max_length=1000, null=True, blank=True, default="")
     pasture = models.ForeignKey(
         Pasture, verbose_name="牧场", on_delete=models.CASCADE, related_name="calves"

@@ -31,6 +31,14 @@ class RFIDModelSerializer(serializers.ModelSerializer):
 
 
 class FeedingStandardModelSerializer(serializers.ModelSerializer):
+    sex = serializers.SerializerMethodField()
+
+    def get_sex(self, obj):
+        """
+        展示可读性别
+        """
+        return obj.get_set_display()
+
     class Meta:
         model = FeedingStandard
         fields = "__all__"  # 表示序列化数据库中的所有字段
