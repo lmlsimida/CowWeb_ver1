@@ -140,14 +140,30 @@ class RFIDViewSet(ReadOnlyModelViewSet):
         instance: RFID = self.get_object()
         if not instance.is_bound:
             return Response({"detail": "该RFID卡未绑定!"})
-        cage_data = CageModelSerializer(instance=instance.cage).data  # 犊牛笼数据
-        calf_data = CalfModelSerializer(instance=instance.calf).data  # 犊牛数据
-        feeding_standard_data = FeedingStandardModelSerializer(
-            instance=instance.feeding_standard
-        ).data  # 喂养标准数据
-        history_data = HistoryDataModelSerializer(
-            instance=instance.history_data, many=True
-        ).data  # 历史数据
+        cage_data = None
+        calf_data = None
+        feeding_standard_data = None
+        history_data = []
+        try:
+            cage_data = CageModelSerializer(instance=instance.cage).data  # 犊牛笼数据
+        except Exception:
+            pass
+        try:
+            calf_data = CalfModelSerializer(instance=instance.calf).data  # 犊牛数据
+        except Exception:
+            pass
+        try:
+            feeding_standard_data = FeedingStandardModelSerializer(
+                instance=instance.feeding_standard
+            ).data  # 喂养标准数据
+        except Exception:
+            pass
+        try:
+            history_data = HistoryDataModelSerializer(
+                instance=instance.history_data, many=True
+            ).data  # 历史数据
+        except Exception:
+            pass
 
         return Response({cage_data, calf_data, feeding_standard_data, history_data})
 
