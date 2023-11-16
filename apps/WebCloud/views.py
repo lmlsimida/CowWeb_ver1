@@ -100,7 +100,7 @@ class CageViewSet(ModelViewSet):
         calf_data = None
         rfid_data = None
         feeding_standard_data = None
-        history_data = []
+        cage_data = self.serializer_class(instance=instance).data
         try:
             calf_data = CageModelSerializer(instance=instance.calf).data  # 犊牛数据
         except Exception:
@@ -115,14 +115,8 @@ class CageViewSet(ModelViewSet):
             ).data  # 喂养标准数据
         except Exception:
             pass
-        try:
-            history_data = HistoryDataModelSerializer(
-                instance=instance.history_data, many=True
-            ).data  # 历史数据
-        except Exception:
-            pass
 
-        return Response([calf_data, rfid_data, feeding_standard_data, history_data])
+        return Response([cage_data, calf_data, rfid_data, feeding_standard_data])
 
 
 class RFIDViewSet(ReadOnlyModelViewSet):
@@ -143,7 +137,7 @@ class RFIDViewSet(ReadOnlyModelViewSet):
         cage_data = None
         calf_data = None
         feeding_standard_data = None
-        history_data = []
+        rfid_data = self.serializer_class(instance=instance).data
         try:
             cage_data = CageModelSerializer(instance=instance.cage).data  # 犊牛笼数据
         except Exception:
@@ -158,14 +152,8 @@ class RFIDViewSet(ReadOnlyModelViewSet):
             ).data  # 喂养标准数据
         except Exception:
             pass
-        try:
-            history_data = HistoryDataModelSerializer(
-                instance=instance.history_data, many=True
-            ).data  # 历史数据
-        except Exception:
-            pass
 
-        return Response([cage_data, calf_data, feeding_standard_data, history_data])
+        return Response([rfid_data, cage_data, calf_data, feeding_standard_data])
 
 
 class FeedingStandardViewSet(ModelViewSet):
@@ -197,16 +185,14 @@ class CalfViewSet(ModelViewSet):
         instance: Calf = self.get_object()
         if not instance.is_in_cage:
             return Response({"detail": "该犊牛未入笼!"})
+        calf_data = self.serializer_class(instance=instance).data
         cage_data = CageModelSerializer(instance=instance.cage).data  # 犊牛笼数据
         rfid_data = RFIDModelSerializer(instance=instance.rfid).data  # RFID数据
         feeding_standard_data = FeedingStandardModelSerializer(
             instance=instance.feeding_standard
         ).data  # 喂养标准数据
-        history_data = HistoryDataModelSerializer(
-            instance=instance.history_data, many=True
-        ).data  # 历史数据
 
-        return Response([cage_data, rfid_data, feeding_standard_data, history_data])
+        return Response([calf_data, cage_data, rfid_data, feeding_standard_data])
 
     @action(methods=["GET"], url_path="born-count", detail=False)
     def born_count(self, request, *args, **kwargs):
