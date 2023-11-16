@@ -122,14 +122,7 @@ class CageViewSet(ModelViewSet):
         except Exception:
             pass
 
-        return Response(
-            {
-                "calf_data": calf_data,
-                "rfid_data": rfid_data,
-                "feeding_standard_data": feeding_standard_data,
-                "history_data": history_data,
-            }
-        )
+        return Response({calf_data, rfid_data, feeding_standard_data, history_data})
 
 
 class RFIDViewSet(ReadOnlyModelViewSet):
@@ -156,14 +149,7 @@ class RFIDViewSet(ReadOnlyModelViewSet):
             instance=instance.history_data, many=True
         ).data  # 历史数据
 
-        return Response(
-            {
-                "cage_data": cage_data,
-                "calf_data": calf_data,
-                "feeding_standard_data": feeding_standard_data,
-                "history_data": history_data,
-            }
-        )
+        return Response({cage_data, calf_data, feeding_standard_data, history_data})
 
 
 class FeedingStandardViewSet(ModelViewSet):
@@ -204,14 +190,7 @@ class CalfViewSet(ModelViewSet):
             instance=instance.history_data, many=True
         ).data  # 历史数据
 
-        return Response(
-            {
-                "cage_data": cage_data,
-                "rfid_data": rfid_data,
-                "feeding_standard_data": feeding_standard_data,
-                "history_data": history_data,
-            }
-        )
+        return Response({cage_data, rfid_data, feeding_standard_data, history_data})
 
     @action(methods=["GET"], url_path="born-count", detail=False)
     def born_count(self, request, *args, **kwargs):
