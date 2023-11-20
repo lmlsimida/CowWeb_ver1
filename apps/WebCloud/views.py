@@ -21,6 +21,7 @@ from apps.WebCloud.models import (
     RemainingMilk,
     RFIDCage,
     DataUpdateStatus,
+    DeviceLog,
 )
 from apps.WebCloud.serializers import (
     HistoryDataModelSerializer,
@@ -32,6 +33,7 @@ from apps.WebCloud.serializers import (
     RFIDCageModelSerializer,
     CalfCageModelSerializer,
     DataUpdateStatusModelSerializer,
+    DeviceLogModelSerializer,
 )
 from utils.pagination import TenItemPerPagePagination
 
@@ -381,3 +383,15 @@ class DataUpdateStatusViewSet(ModelViewSet):
     serializer_class = DataUpdateStatusModelSerializer
     pagination_class = TenItemPerPagePagination
     lookup_field = "pasture"
+    permission_classes = []
+
+
+class DeviceLogViewSet(ModelViewSet):
+    """
+    设备日志视图
+    """
+
+    queryset = DeviceLog.objects.all()
+    serializer_class = DeviceLogModelSerializer
+    pagination_class = TenItemPerPagePagination
+    permission_classes = []

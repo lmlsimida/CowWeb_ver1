@@ -10,6 +10,7 @@ from apps.WebCloud.models import (
     RemainingMilk,
     RFIDCage,
     DataUpdateStatus,
+    DeviceLog,
 )
 
 
@@ -91,4 +92,10 @@ class CalfCageModelSerializer(serializers.ModelSerializer):
 class DataUpdateStatusModelSerializer(serializers.ModelSerializer):
     class Meta:
         model = DataUpdateStatus
+        fields = "__all__"  # 表示序列化数据库中的所有字段
+
+
+class DeviceLogModelSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DeviceLog
         fields = "__all__"  # 表示序列化数据库中的所有字段

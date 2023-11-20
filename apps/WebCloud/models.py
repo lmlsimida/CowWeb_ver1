@@ -467,3 +467,19 @@ class DataUpdateStatus(Model):
         verbose_name = "数据更新状态"
         verbose_name_plural = verbose_name
         ordering = ("-u_time",)
+
+
+class DeviceLog(BaseModel):
+    device_id = models.CharField("设备id", max_length=32, db_index=True)
+    power = models.IntegerField("电量（%）", db_index=True)
+    milk_temperature = models.FloatField("奶温（℃）", db_index=True)
+    boot_time = models.DateTimeField("开机时间", db_index=True)
+    shutdown_time = models.DateTimeField("关机时间", db_index=True)
+    spare1 = models.CharField("备用1", max_length=10, db_index=True)
+    spare2 = models.CharField("备用2", max_length=10, db_index=True)
+
+    class Meta:
+        db_table = "device_log"  # 表名
+        verbose_name = "设备日志"
+        verbose_name_plural = verbose_name
+        ordering = ("-u_time",)
