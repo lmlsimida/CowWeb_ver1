@@ -448,3 +448,20 @@ class HistoryData(BaseModel):
         verbose_name = "历史加奶数据"
         verbose_name_plural = verbose_name
         ordering = ("-c_time",)
+
+
+class DataUpdateStatus(BaseModel):
+    pasture = models.OneToOneField(
+        Pasture,
+        verbose_name="牧场",
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="data_update_status",
+    )
+    is_synced = models.BooleanField("已同步", default=False, db_index=True)
+
+    class Meta:
+        db_table = "data_update_status"  # 表名
+        verbose_name = "数据更新状态"
+        verbose_name_plural = verbose_name
+        ordering = ("-u_time",)
