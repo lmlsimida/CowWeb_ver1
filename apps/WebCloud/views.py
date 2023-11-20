@@ -85,6 +85,7 @@ class HistoryDataViewSet(ModelViewSet):
     serializer_class = HistoryDataModelSerializer
     pagination_class = TenItemPerPagePagination
     filterset_fields = ["rfid_id", "pasture"]  # 筛选选项
+    permission_classes = []
 
 
 class CageViewSet(ModelViewSet):
@@ -408,7 +409,7 @@ class PastureViewSet(ModelViewSet):
     queryset = Pasture.objects.all()
     serializer_class = PastureModelSerializer
     pagination_class = TenItemPerPagePagination
-    # permission_classes = []
+    permission_classes = []
 
     @action(methods=["GET"], url_path="all-data", detail=True)
     def all_data(self, request, *args, **kwargs):
