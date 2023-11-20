@@ -76,12 +76,12 @@ def choose_district(request):
     return JsonResponse(districts, safe=False)
 
 
-class HistoryDataViewSet(ReadOnlyModelViewSet):
+class HistoryDataViewSet(ModelViewSet):
     """
-    只读历史数据视图集
+    历史数据视图集
     """
 
-    queryset = HistoryData.objects.filter(is_delete=False)
+    queryset = HistoryData.objects.all()
     serializer_class = HistoryDataModelSerializer
     pagination_class = TenItemPerPagePagination
     filterset_fields = ["rfid_id", "pasture"]  # 筛选选项
