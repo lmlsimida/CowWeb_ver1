@@ -11,6 +11,7 @@ from apps.WebCloud.models import (
     RFIDCage,
     DataUpdateStatus,
     DeviceLog,
+    Pasture,
 )
 
 
@@ -99,3 +100,9 @@ class DeviceLogModelSerializer(serializers.ModelSerializer):
     class Meta:
         model = DeviceLog
         fields = "__all__"  # 表示序列化数据库中的所有字段
+
+
+class PastureModelSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Pasture
+        fields = "__all__"

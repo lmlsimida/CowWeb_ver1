@@ -8,6 +8,7 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import APIException
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework.viewsets import ReadOnlyModelViewSet, ModelViewSet
 
 from apps.WebCloud import helper
@@ -22,6 +23,7 @@ from apps.WebCloud.models import (
     RFIDCage,
     DataUpdateStatus,
     DeviceLog,
+    Pasture,
 )
 from apps.WebCloud.serializers import (
     HistoryDataModelSerializer,
@@ -34,6 +36,7 @@ from apps.WebCloud.serializers import (
     CalfCageModelSerializer,
     DataUpdateStatusModelSerializer,
     DeviceLogModelSerializer,
+    PastureModelSerializer,
 )
 from utils.pagination import TenItemPerPagePagination
 
@@ -120,7 +123,7 @@ class CageViewSet(ModelViewSet):
         except Exception:
             pass
 
-        return Response([cage_data, calf_data, rfid_data, feeding_standard_data])
+        return Response([rfid_data, cage_data, calf_data, feeding_standard_data])
 
 
 class RFIDViewSet(ReadOnlyModelViewSet):
@@ -196,7 +199,7 @@ class CalfViewSet(ModelViewSet):
             instance=instance.feeding_standard
         ).data  # 喂养标准数据
 
-        return Response([calf_data, cage_data, rfid_data, feeding_standard_data])
+        return Response([rfid_data, cage_data, calf_data, feeding_standard_data])
 
     @action(methods=["GET"], url_path="born-count", detail=False)
     def born_count(self, request, *args, **kwargs):
@@ -395,3 +398,35 @@ class DeviceLogViewSet(ModelViewSet):
     serializer_class = DeviceLogModelSerializer
     pagination_class = TenItemPerPagePagination
     permission_classes = []
+
+
+class PastureViewSet(ModelViewSet):
+    """
+    牧场视图
+    """
+
+    queryset = Pasture.objects.all()
+    serializer_class = PastureModelSerializer
+    pagination_class = TenItemPerPagePagination
+    # permission_classes = []
+
+    @action(methods=["GET"], url_path="all-data", detail=True)
+    def all_data(self, request, *args, **kwargs):
+        """
+        获取某牧场入笼犊牛的所有数据
+        """
+        instance: Pasture = self.get_object()
+        calf_cages = CalfCage.objects.filter(calf__pasture=instance).all()
+        result = []
+        for calf_cage in calf_cages:
+            calf = calf_cage.calf
+            result.append(
+                [
+                    RFIDModelSerializer(instance=calf.rfid).data,
+                    CageModelSerializer(instance=calf.cage).data,
+                    CalfModelSerializer(instance=calf).data,
+                    FeedingStandardModelSerializer(instance=calf.feeding_standard).data,
+                ]
+            )
+
+        return Response(result)
