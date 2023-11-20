@@ -20,6 +20,7 @@ from apps.WebCloud.models import (
     CalfCage,
     RemainingMilk,
     RFIDCage,
+    DataUpdateStatus,
 )
 from apps.WebCloud.serializers import (
     HistoryDataModelSerializer,
@@ -30,6 +31,7 @@ from apps.WebCloud.serializers import (
     RemainingMilkModelSerializer,
     RFIDCageModelSerializer,
     CalfCageModelSerializer,
+    DataUpdateStatusModelSerializer,
 )
 from utils.pagination import TenItemPerPagePagination
 
@@ -368,3 +370,14 @@ class CalfCageViewSet(ModelViewSet):
     queryset = CalfCage.objects.all()
     serializer_class = CalfCageModelSerializer
     pagination_class = TenItemPerPagePagination
+
+
+class DataUpdateStatusViewSet(ModelViewSet):
+    """
+    数据更新状态视图
+    """
+
+    queryset = DataUpdateStatus.objects.all()
+    serializer_class = DataUpdateStatusModelSerializer
+    pagination_class = TenItemPerPagePagination
+    lookup_field = "pasture"

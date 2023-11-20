@@ -459,7 +459,7 @@ class DataUpdateStatus(Model):
         null=True,
         related_name="data_update_status",
     )
-    u_time = models.DateTimeField("更新时间", auto_now=True, db_index=True)
+    u_time = models.DateTimeField("更新时间", default=datetime.now, db_index=True)
     is_synced = models.BooleanField("已同步", default=False, db_index=True)
 
     class Meta:
