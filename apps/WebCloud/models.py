@@ -1,8 +1,9 @@
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 from typing import Optional
 
 # from django.core.exceptions import ValidationError
 from django.db import models
+from django.db.models import Model
 from rest_framework.exceptions import ValidationError
 
 
@@ -450,7 +451,7 @@ class HistoryData(BaseModel):
         ordering = ("-c_time",)
 
 
-class DataUpdateStatus(BaseModel):
+class DataUpdateStatus(Model):
     pasture = models.OneToOneField(
         Pasture,
         verbose_name="牧场",
@@ -458,6 +459,7 @@ class DataUpdateStatus(BaseModel):
         null=True,
         related_name="data_update_status",
     )
+    u_time = models.DateTimeField("更新时间", auto_now=True, db_index=True)
     is_synced = models.BooleanField("已同步", default=False, db_index=True)
 
     class Meta:
