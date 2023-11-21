@@ -172,6 +172,14 @@ class Cage(models.Model):
         return CalfCage.check_bound(cage=self)
 
     @property
+    def bound_time(self):
+        return self.rfid_cage.bound_time
+
+    @property
+    def has_calf_time(self):
+        return self.calf_cage.cage_entry_time
+
+    @property
     def calf(self):
         """
         笼中的犊牛
@@ -220,6 +228,7 @@ class RFIDCage(models.Model):
         related_name="rfid_cage",
         unique=True,
     )
+    bound_time = models.DateTimeField("绑定时间", auto_now_add=True, db_index=True)
 
     def __str__(self):
         return f"{self.rfid.rfid_id}-{self.cage.cage_id}"
@@ -287,6 +296,13 @@ class Calf(models.Model):
         是否入笼
         """
         return CalfCage.check_bound(self)
+
+    @property
+    def in_cage_time(self):
+        """
+        入笼时间
+        """
+        return self.calf_cage.cage_entry_time
 
     @property
     def cage_entry_time(self):

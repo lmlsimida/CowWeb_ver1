@@ -23,6 +23,27 @@ class HistoryDataModelSerializer(serializers.ModelSerializer):
 
 
 class CageModelSerializer(serializers.ModelSerializer):
+    has_bound2calf = serializers.SerializerMethodField()
+    has_bound2rfid = serializers.SerializerMethodField()
+    bound2calf_time = serializers.SerializerMethodField()
+    bound2rfid_time = serializers.SerializerMethodField()
+
+    @staticmethod
+    def get_has_bound2calf(obj):
+        return obj.has_calf()
+
+    @staticmethod
+    def get_has_bound2rfid(obj):
+        return obj.is_bound
+
+    @staticmethod
+    def get_bound2rfid_time(obj):
+        return obj.bound_time
+
+    @staticmethod
+    def get_bound2calf_time(obj):
+        return obj.has_calf_time
+
     class Meta:
         model = Cage
         fields = "__all__"  # 表示序列化数据库中的所有字段
@@ -42,6 +63,8 @@ class FeedingStandardModelSerializer(serializers.ModelSerializer):
 
 class CalfModelSerializer(serializers.ModelSerializer):
     sex = serializers.SerializerMethodField()
+    has_bound = serializers.SerializerMethodField()
+    bound_time = serializers.SerializerMethodField()
 
     @staticmethod
     def get_sex(obj):
@@ -49,6 +72,14 @@ class CalfModelSerializer(serializers.ModelSerializer):
         展示可读性别
         """
         return obj.get_sex_display()
+
+    @staticmethod
+    def get_has_bound(obj):
+        return obj.is_in_cage
+
+    @staticmethod
+    def get_bound_time(obj):
+        return obj.in_cage_time
 
     class Meta:
         model = Calf
