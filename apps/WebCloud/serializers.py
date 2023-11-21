@@ -41,7 +41,7 @@ class FeedingStandardModelSerializer(serializers.ModelSerializer):
         """
         展示可读性别
         """
-        return obj.get_set_display()
+        return obj.get_sex_display()
 
     class Meta:
         model = FeedingStandard
