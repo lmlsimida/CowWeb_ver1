@@ -24,6 +24,7 @@ from apps.WebCloud.models import (
     DataUpdateStatus,
     DeviceLog,
     Pasture,
+    UnlinkCalf,
 )
 from apps.WebCloud.serializers import (
     HistoryDataModelSerializer,
@@ -37,6 +38,7 @@ from apps.WebCloud.serializers import (
     DataUpdateStatusModelSerializer,
     DeviceLogModelSerializer,
     PastureModelSerializer,
+    UnlinkCalfModelSerializer,
 )
 from utils.pagination import TenItemPerPagePagination
 
@@ -399,6 +401,24 @@ class DeviceLogViewSet(ModelViewSet):
     serializer_class = DeviceLogModelSerializer
     pagination_class = TenItemPerPagePagination
     permission_classes = []
+
+
+class UnlinkCalfViewSet(ModelViewSet):
+    """
+    出笼犊牛视图
+    """
+
+    queryset = UnlinkCalf.objects.all()
+    serializer_class = UnlinkCalfModelSerializer
+    pagination_class = TenItemPerPagePagination
+    lookup_field = "pasture"
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        Calf.objects.get(calf_id=serializer.data["calf_id"]).delete()
+        return Response(serializer.data)
 
 
 class PastureViewSet(ModelViewSet):

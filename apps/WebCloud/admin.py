@@ -11,6 +11,7 @@ from apps.WebCloud.models import (
     FeedingStandard,
     RFIDCage,
     CalfCage,
+    UnlinkCalf,
 )
 
 
@@ -140,6 +141,23 @@ class CalfAdmin(CustomModelAdmin):
     """
 
     list_display = ["calf_id", "date_of_birth"]  # 列表展示项
+
+
+@admin.register(UnlinkCalf)
+class UnlinkCalfAdmin(CustomModelAdmin):
+    """
+    UnlinkCalfAdmin 自定义admin
+    """
+
+    list_display = [
+        "calf_id",
+        "date_of_birth",
+        "sex",
+        "birth_weight",
+        "weight_unlink",
+        "date_unlink",
+        "pasture",
+    ]  # 列表展示项
 
 
 @admin.register(FeedingStandard)

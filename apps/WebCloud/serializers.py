@@ -12,6 +12,7 @@ from apps.WebCloud.models import (
     DataUpdateStatus,
     DeviceLog,
     Pasture,
+    UnlinkCalf,
 )
 
 
@@ -105,4 +106,10 @@ class DeviceLogModelSerializer(serializers.ModelSerializer):
 class PastureModelSerializer(serializers.ModelSerializer):
     class Meta:
         model = Pasture
+        fields = "__all__"
+
+
+class UnlinkCalfModelSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UnlinkCalf
         fields = "__all__"

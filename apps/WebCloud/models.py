@@ -260,6 +260,7 @@ class Calf(models.Model):
     date_of_birth = models.DateField("出生日期", db_index=True)
     sex = models.SmallIntegerField("性别", choices=SEXES, default=2, db_index=True)
     weight_day_add = models.FloatField("日增重", default=1.0, db_index=True)
+    birth_weight = models.FloatField("出生体重(kg)", default=0.0, db_index=True)
     # Age_in_days = models.IntegerField('日龄', default=1, help_text='日龄')
     adjusted_feeding = models.FloatField("临时调整饲喂量", default=0.0, db_index=True)
     descr = models.CharField("备注", max_length=1000, null=True, blank=True, default="")
@@ -483,3 +484,32 @@ class DeviceLog(BaseModel):
         verbose_name = "设备日志"
         verbose_name_plural = verbose_name
         ordering = ("-u_time",)
+
+
+class UnlinkCalf(BaseModel):
+    """
+    出笼犊牛
+    """
+
+    SEXES = ((1, "公"), (2, "母"))
+    RSNS = ((0, "无"), (1, "断奶"), (2, "死亡"), (3, "其他"))
+    calf_id = models.CharField("犊牛编号", max_length=40, unique=True)
+    date_of_birth = models.DateField("出生日期", db_index=True)
+    sex = models.SmallIntegerField("性别", choices=SEXES, default=2, db_index=True)
+    birth_weight = models.FloatField("出生体重(kg)", default=0.0, db_index=True)
+    weight_unlink = models.FloatField("出笼体重(kg)", default=0.0, db_index=True)
+    date_unlink = models.DateTimeField("出笼时间", db_index=True, default="")
+    rsn_unlink = models.IntegerField("出笼原因", choices=RSNS, default=0, db_index=True)
+    infor_unlink = models.TextField("出笼备注信息", default="")
+    pasture = models.ForeignKey(
+        Pasture,
+        verbose_name="牧场",
+        on_delete=models.CASCADE,
+        related_name="unlink_calves",
+    )
+
+    class Meta:
+        db_table = "unlink_calf"  # 表名
+        verbose_name = "出笼犊牛"
+        verbose_name_plural = verbose_name
+        ordering = ("-c_time",)
