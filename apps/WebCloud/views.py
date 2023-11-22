@@ -441,10 +441,13 @@ class PastureViewSet(ModelViewSet):
         result = []
         for calf_cage in calf_cages:
             calf = calf_cage.calf
+            cage = calf.cage
+            if not cage.is_bound:
+                continue
             result.append(
                 [
                     RFIDModelSerializer(instance=calf.rfid).data,
-                    CageModelSerializer(instance=calf.cage).data,
+                    CageModelSerializer(instance=cage).data,
                     CalfModelSerializer(instance=calf).data,
                     FeedingStandardModelSerializer(instance=calf.feeding_standard).data,
                 ]
