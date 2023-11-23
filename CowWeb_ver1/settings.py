@@ -140,6 +140,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 REST_FRAMEWORK = {
     # 设置默认的全局用户验证方案
+    "DEFAULT_PAGINATION_CLASS": "utils.pagination.TenItemPerPagePagination",
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework_simplejwt.authentication.JWTAuthentication",
         "rest_framework.authentication.SessionAuthentication",
