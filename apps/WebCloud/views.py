@@ -454,7 +454,7 @@ class PastureViewSet(ModelViewSet):
 
         return Response(result)
 
-    @action(methods=["GET"], url_path="all-data", detail=True)
+    @action(methods=["GET"], url_path="data4local", detail=True)
     def data4local(self, request, *args, **kwargs):
         """
         获取某牧场入笼犊牛的所有数据
