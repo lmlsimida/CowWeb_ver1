@@ -8,7 +8,6 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import APIException
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.views import APIView
 from rest_framework.viewsets import ReadOnlyModelViewSet, ModelViewSet
 
 from apps.WebCloud import helper
@@ -451,6 +450,51 @@ class PastureViewSet(ModelViewSet):
                     CalfModelSerializer(instance=calf).data,
                     FeedingStandardModelSerializer(instance=calf.feeding_standard).data,
                 ]
+            )
+
+        return Response(result)
+
+    @action(methods=["GET"], url_path="all-data", detail=True)
+    def data4local(self, request, *args, **kwargs):
+        """
+        获取某牧场入笼犊牛的所有数据
+        """
+        instance: Pasture = self.get_object()
+        calf_cages = CalfCage.objects.filter(calf__pasture=instance).all()
+        result = []
+        for calf_cage in calf_cages:
+            calf = calf_cage.calf
+            cage = calf.cage
+            if not cage.is_bound:
+                continue
+            rfid_data = RFIDModelSerializer(instance=calf.rfid).data
+            cage_data = CageModelSerializer(instance=cage).data
+            calf_data = CalfModelSerializer(instance=calf).data
+            feeding_standard_data = FeedingStandardModelSerializer(
+                instance=calf.feeding_standard
+            ).data
+            result.append(
+                {
+                    "rfid_id": rfid_data["rfid_id"],
+                    "cage_id": cage_data["cage_id"],
+                    "area": cage_data["area"],
+                    "area_id": cage_data["area_id"],
+                    "sex": calf_data["sex"],
+                    "has_bound": calf_data["has_bound"],
+                    "bound_time": calf_data["bound_time"],
+                    "calf_id": calf_data["calf_id"],
+                    "date_of_birth": calf_data["date_of_birth"],
+                    "weight_day_add": calf_data["weight_day_add"],
+                    "birth_weight": calf_data["birth_weight"],
+                    "adjusted_feeding": calf_data["adjusted_feeding"],
+                    "descr": calf_data["descr"],
+                    "feeding_age": feeding_standard_data["feeding_age"],
+                    "feeding_total_fe": feeding_standard_data["feeding_total_fe"],
+                    "feeding_up": feeding_standard_data["feeding_up"],
+                    "pasture": instance.id,
+                    "bound2calf_time": cage_data["bound2calf_time"],
+                    "bound2rfid_time": cage_data["bound2rfid_time"],
+                }
             )
 
         return Response(result)
