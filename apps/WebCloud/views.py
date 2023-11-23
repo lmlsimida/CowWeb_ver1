@@ -489,7 +489,7 @@ class PastureViewSet(ModelViewSet):
                     "adjusted_feeding": calf_data["adjusted_feeding"],
                     "descr": calf_data["descr"],
                     "feeding_age": feeding_standard_data["feeding_age"],
-                    "feeding_total_fe": feeding_standard_data["feeding_total_fe"],
+                    "feeding_total_feeding": feeding_standard_data["feeding_total_feeding"],
                     "feeding_up": feeding_standard_data["feeding_up"],
                     "pasture": instance.id,
                     "bound2calf_time": cage_data["bound2calf_time"],
