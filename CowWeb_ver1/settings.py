@@ -89,6 +89,9 @@ DATABASES = {
         "PASSWORD": "1q2w3e4r",
         "HOST": "127.0.0.1",
         "PORT": 3306,
+        "OPTIONS": {
+            "init_command": "SET time_zone='Asia/Shanghai'",
+        },
     }
 }
 

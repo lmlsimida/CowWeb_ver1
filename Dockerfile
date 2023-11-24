@@ -1,5 +1,10 @@
 # define an alias for the specfic python version used in this file.
 FROM python:3.10
+
+# 设置容器的时区
+ENV TZ=Asia/Shanghai
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
 # Requirements are installed here to ensure they will be cached.
 COPY requirements.txt .
 RUN pip install -r /requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
