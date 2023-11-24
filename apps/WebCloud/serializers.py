@@ -38,11 +38,11 @@ class CageModelSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def get_bound2rfid_time(obj):
-        return obj.bound_time
+        return obj.bound_time if obj.is_bound else None
 
     @staticmethod
     def get_bound2calf_time(obj):
-        return obj.has_calf_time
+        return obj.has_calf_time if obj.has_calf() else None
 
     class Meta:
         model = Cage
@@ -79,7 +79,7 @@ class CalfModelSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def get_bound_time(obj):
-        return obj.in_cage_time
+        return obj.in_cage_time if obj.is_in_cage else None
 
     class Meta:
         model = Calf
