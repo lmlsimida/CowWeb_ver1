@@ -5,7 +5,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework import status
 from rest_framework.decorators import action
-from rest_framework.exceptions import APIException
+from rest_framework.exceptions import APIException, ValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet, ModelViewSet
@@ -163,6 +163,14 @@ class RFIDViewSet(ReadOnlyModelViewSet):
             pass
 
         return Response([rfid_data, cage_data, calf_data, feeding_standard_data])
+
+    @action(methods=["GET"], url_path="unbind", detail=True)
+    def unbind(self, *args, **kwargs):
+        instance: RFID = self.get_object()
+        if not instance.is_bound:
+            raise ValidationError("该rfid未绑定")
+        instance.unbound()
+        return Response(None)
 
 
 class FeedingStandardViewSet(ModelViewSet):
