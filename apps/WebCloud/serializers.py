@@ -50,6 +50,11 @@ class CageModelSerializer(serializers.ModelSerializer):
 
 
 class RFIDModelSerializer(serializers.ModelSerializer):
+    is_bound = serializers.SerializerMethodField()
+
+    def get_is_bound(self, obj):
+        return obj.is_bound
+
     class Meta:
         model = RFID
         fields = "__all__"  # 表示序列化数据库中的所有字段

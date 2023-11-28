@@ -192,14 +192,28 @@ class CalfViewSet(ModelViewSet):
         获取犊牛的所有数据
         """
         instance: Calf = self.get_object()
-        if not instance.is_in_cage:
-            return Response({"detail": "该犊牛未入笼!"})
-        calf_data = self.serializer_class(instance=instance).data
-        cage_data = CageModelSerializer(instance=instance.cage).data  # 犊牛笼数据
-        rfid_data = RFIDModelSerializer(instance=instance.rfid).data  # RFID数据
-        feeding_standard_data = FeedingStandardModelSerializer(
-            instance=instance.feeding_standard
-        ).data  # 喂养标准数据
+        calf_data = None
+        cage_data = None
+        rfid_data = None
+        feeding_standard_data = None
+        try:
+            calf_data = self.serializer_class(instance=instance).data
+        except Exception:
+            pass
+        try:
+            cage_data = CageModelSerializer(instance=instance.cage).data  # 犊牛笼数据
+        except Exception:
+            pass
+        try:
+            rfid_data = RFIDModelSerializer(instance=instance.rfid).data  # RFID数据
+        except Exception:
+            pass
+        try:
+            feeding_standard_data = FeedingStandardModelSerializer(
+                instance=instance.feeding_standard
+            ).data  # 喂养标准数据
+        except Exception:
+            pass
 
         return Response([rfid_data, cage_data, calf_data, feeding_standard_data])
 
@@ -489,7 +503,9 @@ class PastureViewSet(ModelViewSet):
                     "adjusted_feeding": calf_data["adjusted_feeding"],
                     "descr": calf_data["descr"],
                     "feeding_age": feeding_standard_data["feeding_age"],
-                    "feeding_total_feeding": feeding_standard_data["feeding_total_feeding"],
+                    "feeding_total_feeding": feeding_standard_data[
+                        "feeding_total_feeding"
+                    ],
                     "feeding_up": feeding_standard_data["feeding_up"],
                     "pasture": instance.id,
                     "bound2calf_time": cage_data["bound2calf_time"],
