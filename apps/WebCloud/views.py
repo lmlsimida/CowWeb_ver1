@@ -169,7 +169,7 @@ class RFIDViewSet(ReadOnlyModelViewSet):
         instance: RFID = self.get_object()
         if not instance.is_bound:
             raise ValidationError("该rfid未绑定")
-        instance.unbound()
+        instance.unbind()
         return Response(None)
 
 

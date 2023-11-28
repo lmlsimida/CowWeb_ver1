@@ -64,11 +64,11 @@ class RFID(models.Model):
         """
         return RFIDCage.check_bound(self)
 
-    def unbound(self):
+    def unbind(self):
         """
         解绑
         """
-        return RFIDCage.unbound(self)
+        return RFIDCage.unbind(self)
 
     def check_useful(self):
         """
@@ -240,7 +240,7 @@ class RFIDCage(models.Model):
         return f"{self.rfid.rfid_id}-{self.cage.cage_id}"
 
     @classmethod
-    def unbound(cls, rfid=None, cage=None):
+    def unbind(cls, rfid=None, cage=None):
         if rfid:
             cls.objects.filter(rfid=rfid).first().delete()
         elif cage:
