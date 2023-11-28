@@ -438,6 +438,9 @@ class RemainingMilk(BaseModel):
         verbose_name = "犊牛剩余奶量"  # 站点显示名
         verbose_name_plural = verbose_name
 
+    def __str__(self):
+        return self.rfid
+
 
 class HistoryData(BaseModel):
     # 从设备上传至此表数据库
@@ -466,6 +469,9 @@ class HistoryData(BaseModel):
         verbose_name = "历史加奶数据"
         verbose_name_plural = verbose_name
         ordering = ("-c_time",)
+
+    def __str__(self):
+        return self.rfid_id
 
 
 class DataUpdateStatus(Model):
@@ -529,3 +535,6 @@ class UnlinkCalf(BaseModel):
         verbose_name = "出笼犊牛"
         verbose_name_plural = verbose_name
         ordering = ("-c_time",)
+
+    def __str__(self):
+        return self.calf_id
