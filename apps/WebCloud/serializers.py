@@ -23,10 +23,10 @@ class HistoryDataModelSerializer(serializers.ModelSerializer):
 
 
 class CageModelSerializer(serializers.ModelSerializer):
-    has_bound2calf = serializers.SerializerMethodField()
-    has_bound2rfid = serializers.SerializerMethodField()
-    bound2calf_time = serializers.SerializerMethodField()
-    bound2rfid_time = serializers.SerializerMethodField()
+    has_bound2calf = serializers.SerializerMethodField(label="是否绑定犊牛")
+    has_bound2rfid = serializers.SerializerMethodField(label="是否绑定RFID")
+    bound2calf_time = serializers.SerializerMethodField(label="绑定犊牛时间")
+    bound2rfid_time = serializers.SerializerMethodField(label="绑定RFID时间")
 
     @staticmethod
     def get_has_bound2calf(obj):
@@ -50,7 +50,7 @@ class CageModelSerializer(serializers.ModelSerializer):
 
 
 class RFIDModelSerializer(serializers.ModelSerializer):
-    is_bound = serializers.SerializerMethodField()
+    is_bound = serializers.SerializerMethodField(label="是否绑定")
 
     def get_is_bound(self, obj):
         return obj.is_bound
@@ -67,9 +67,9 @@ class FeedingStandardModelSerializer(serializers.ModelSerializer):
 
 
 class CalfModelSerializer(serializers.ModelSerializer):
-    sex = serializers.SerializerMethodField()
-    has_bound = serializers.SerializerMethodField()
-    bound_time = serializers.SerializerMethodField()
+    sex = serializers.SerializerMethodField(label="性别")
+    has_bound = serializers.SerializerMethodField(label="是否入笼")
+    bound_time = serializers.SerializerMethodField(label="入笼时间")
 
     @staticmethod
     def get_sex(obj):
