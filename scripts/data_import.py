@@ -55,4 +55,4 @@ def run():
                 )
                 if calf_id not in calf_duplicates:
                     if not calf.is_in_cage:
-                        CalfCage.objects.create(calf=calf, cage=cage)
+                        calf.enter_cage(cage)
