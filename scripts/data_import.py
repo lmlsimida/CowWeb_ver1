@@ -27,7 +27,7 @@ def run():
         "RFID"
     ].unique()
     with transaction.atomic():
-        for _, row in track(df.iterrows()):
+        for _, row in track(df.iterrows(), total=len(df)):
             cage_id = row["笼号"]
             if pd.isna(cage_id):
                 continue

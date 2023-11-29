@@ -7,7 +7,7 @@ from rest_framework.response import Response
 class TenItemPerPagePagination(PageNumberPagination):
     page_size = 20
     page_size_query_param = "pageSize"
-    max_page_size = 100
+    max_page_size = 5000
 
     def paginate_queryset(self, queryset, request, view=None):
         # 从请求中获取 'pageSize' 参数

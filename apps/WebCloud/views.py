@@ -110,14 +110,10 @@ class CageViewSet(ModelViewSet):
         rfid_data = None
         feeding_standard_data = None
         cage_data = self.serializer_class(instance=instance).data
-        try:
+        if instance.has_calf():
             calf_data = CageModelSerializer(instance=instance.calf).data  # 犊牛数据
-        except Exception:
-            pass
-        try:
+        if instance.is_bound:
             rfid_data = RFIDModelSerializer(instance=instance.rfid).data  # RFID数据
-        except Exception:
-            pass
         try:
             feeding_standard_data = FeedingStandardModelSerializer(
                 instance=instance.feeding_standard
@@ -141,20 +137,14 @@ class RFIDViewSet(ReadOnlyModelViewSet):
         获取RFID卡的所有数据
         """
         instance: RFID = self.get_object()
-        if not instance.is_bound:
-            return Response({"detail": "该RFID卡未绑定!"})
         cage_data = None
         calf_data = None
         feeding_standard_data = None
         rfid_data = self.serializer_class(instance=instance).data
-        try:
+        if instance.is_bound:
             cage_data = CageModelSerializer(instance=instance.cage).data  # 犊牛笼数据
-        except Exception:
-            pass
-        try:
-            calf_data = CalfModelSerializer(instance=instance.calf).data  # 犊牛数据
-        except Exception:
-            pass
+            if instance.cage.has_calf():
+                calf_data = CalfModelSerializer(instance=instance.calf).data  # 犊牛数据
         try:
             feeding_standard_data = FeedingStandardModelSerializer(
                 instance=instance.feeding_standard
@@ -204,18 +194,11 @@ class CalfViewSet(ModelViewSet):
         cage_data = None
         rfid_data = None
         feeding_standard_data = None
-        try:
-            calf_data = self.serializer_class(instance=instance).data
-        except Exception:
-            pass
-        try:
+        calf_data = self.serializer_class(instance=instance).data
+        if instance.is_in_cage:
             cage_data = CageModelSerializer(instance=instance.cage).data  # 犊牛笼数据
-        except Exception:
-            pass
-        try:
-            rfid_data = RFIDModelSerializer(instance=instance.rfid).data  # RFID数据
-        except Exception:
-            pass
+            if instance.cage.is_bound:
+                rfid_data = RFIDModelSerializer(instance=instance.rfid).data  # RFID数据
         try:
             feeding_standard_data = FeedingStandardModelSerializer(
                 instance=instance.feeding_standard
@@ -304,13 +287,11 @@ class CalfViewSet(ModelViewSet):
         """
         当前用户所在牧场的犊牛相关汇总信息
         """
-        data_sub = [
-            {
-                "id": 1,
-                "name": "1类",
-                "data": [{"id": "1", "alias": "设备1", "val": "100"}],
-            }
-        ]
+        data_sub = [{
+            "id": 1,
+            "name": "1类",
+            "data": [{"id": "1", "alias": "设备1", "val": "100"}],
+        }]
         calf_count_query_data = (
             CalfCage.objects.filter(calf__pasture=request.user.pasture)
             .values("calf__sex")
@@ -465,14 +446,12 @@ class PastureViewSet(ModelViewSet):
             cage = calf.cage
             if not cage.is_bound:
                 continue
-            result.append(
-                [
-                    RFIDModelSerializer(instance=calf.rfid).data,
-                    CageModelSerializer(instance=cage).data,
-                    CalfModelSerializer(instance=calf).data,
-                    FeedingStandardModelSerializer(instance=calf.feeding_standard).data,
-                ]
-            )
+            result.append([
+                RFIDModelSerializer(instance=calf.rfid).data,
+                CageModelSerializer(instance=cage).data,
+                CalfModelSerializer(instance=calf).data,
+                FeedingStandardModelSerializer(instance=calf.feeding_standard).data,
+            ])
 
         return Response(result)
 
@@ -495,30 +474,26 @@ class PastureViewSet(ModelViewSet):
             feeding_standard_data = FeedingStandardModelSerializer(
                 instance=calf.feeding_standard
             ).data
-            result.append(
-                {
-                    "rfid_id": rfid_data["rfid_id"],
-                    "cage_id": cage_data["cage_id"],
-                    "area": cage_data["area"],
-                    "area_id": cage_data["area_id"],
-                    "sex": calf_data["sex"],
-                    "has_bound": calf_data["has_bound"],
-                    "bound_time": calf_data["bound_time"],
-                    "calf_id": calf_data["calf_id"],
-                    "date_of_birth": calf_data["date_of_birth"],
-                    "weight_day_add": calf_data["weight_day_add"],
-                    "birth_weight": calf_data["birth_weight"],
-                    "adjusted_feeding": calf_data["adjusted_feeding"],
-                    "descr": calf_data["descr"],
-                    "feeding_age": feeding_standard_data["feeding_age"],
-                    "feeding_total_feeding": feeding_standard_data[
-                        "feeding_total_feeding"
-                    ],
-                    "feeding_up": feeding_standard_data["feeding_up"],
-                    "pasture": instance.id,
-                    "bound2calf_time": cage_data["bound2calf_time"],
-                    "bound2rfid_time": cage_data["bound2rfid_time"],
-                }
-            )
+            result.append({
+                "rfid_id": rfid_data["rfid_id"],
+                "cage_id": cage_data["cage_id"],
+                "area": cage_data["area"],
+                "area_id": cage_data["area_id"],
+                "sex": calf_data["sex"],
+                "has_bound": calf_data["has_bound"],
+                "bound_time": calf_data["bound_time"],
+                "calf_id": calf_data["calf_id"],
+                "date_of_birth": calf_data["date_of_birth"],
+                "weight_day_add": calf_data["weight_day_add"],
+                "birth_weight": calf_data["birth_weight"],
+                "adjusted_feeding": calf_data["adjusted_feeding"],
+                "descr": calf_data["descr"],
+                "feeding_age": feeding_standard_data["feeding_age"],
+                "feeding_total_feeding": feeding_standard_data["feeding_total_feeding"],
+                "feeding_up": feeding_standard_data["feeding_up"],
+                "pasture": instance.id,
+                "bound2calf_time": cage_data["bound2calf_time"],
+                "bound2rfid_time": cage_data["bound2rfid_time"],
+            })
 
         return Response(result)
