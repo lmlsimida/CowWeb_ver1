@@ -17,6 +17,7 @@ from apps.WebCloud.models import (
 
 
 class HistoryDataModelSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = HistoryData
         fields = "__all__"  # 表示序列化数据库中的所有字段
@@ -61,6 +62,7 @@ class RFIDModelSerializer(serializers.ModelSerializer):
 
 
 class FeedingStandardModelSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = FeedingStandard
         fields = "__all__"  # 表示序列化数据库中的所有字段
@@ -128,24 +130,28 @@ class CalfCageModelSerializer(serializers.ModelSerializer):
 
 
 class DataUpdateStatusModelSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = DataUpdateStatus
         fields = "__all__"  # 表示序列化数据库中的所有字段
 
 
 class DeviceLogModelSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = DeviceLog
         fields = "__all__"  # 表示序列化数据库中的所有字段
 
 
 class PastureModelSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Pasture
         fields = "__all__"
 
 
 class UnlinkCalfModelSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = UnlinkCalf
         fields = "__all__"

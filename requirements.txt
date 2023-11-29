@@ -11,3 +11,6 @@ django-filter
 pillow
 drf-yasg
 cryptography
+pandas
+openpyxl
+rich
