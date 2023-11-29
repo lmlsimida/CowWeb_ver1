@@ -54,4 +54,5 @@ def run():
                     pasture_id=1,
                 )
                 if calf_id not in calf_duplicates:
-                    CalfCage.objects.create(calf=calf, cage=cage)
+                    if not calf.is_in_cage:
+                        CalfCage.objects.create(calf=calf, cage=cage)
