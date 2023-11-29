@@ -31,9 +31,14 @@ def run():
             cage_id = row["笼号"]
             if pd.isna(cage_id):
                 continue
-            cage = Cage.objects.create(cage_id=row["笼号"], pasture_id=1)
-            rfid = RFID.objects.create(rfid_id=row["RFID"], pasture_id=1)
-            RFIDCage.bound(rfid, cage)
+            cage = Cage.objects.filter(cage_id=row["笼号"], pasture_id=1).first()
+            if not cage:
+                cage = Cage.objects.create(cage_id=row["笼号"], pasture_id=1)
+            rfid = RFID.objects.filter(rfid_id=row["RFID"], pasture_id=1).first()
+            if not rfid:
+                rfid = RFID.objects.create(rfid_id=row["RFID"], pasture_id=1)
+            if not rfid.is_bound:
+                RFIDCage.bound(rfid, cage)
             calf_id = row["牛号"]
             if pd.isna(calf_id):
                 continue
