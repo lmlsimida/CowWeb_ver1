@@ -534,7 +534,7 @@ class UnlinkCalf(BaseModel):
     sex = models.SmallIntegerField("性别", choices=SEXES, default=2, db_index=True)
     birth_weight = models.FloatField("出生体重(kg)", default=0.0, db_index=True)
     weight_unlink = models.FloatField("出笼体重(kg)", default=0.0, db_index=True)
-    date_unlink = models.DateField("出笼时间", db_index=True, default="")
+    date_unlink = models.DateField("出笼时间", db_index=True, auto_now_add=True)
     rsn_unlink = models.IntegerField("出笼原因", choices=RSNS, default=0, db_index=True)
     infor_unlink = models.TextField("出笼备注信息", default="")
     pasture = models.ForeignKey(
