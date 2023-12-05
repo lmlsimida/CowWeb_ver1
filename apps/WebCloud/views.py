@@ -111,7 +111,7 @@ class CageViewSet(ModelViewSet):
         feeding_standard_data = None
         cage_data = self.serializer_class(instance=instance).data
         if instance.has_calf():
-            calf_data = CageModelSerializer(instance=instance.calf).data  # 犊牛数据
+            calf_data = CalfModelSerializer(instance=instance.calf).data  # 犊牛数据
         if instance.is_bound:
             rfid_data = RFIDModelSerializer(instance=instance.rfid).data  # RFID数据
         try:

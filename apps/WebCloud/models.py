@@ -234,7 +234,7 @@ class RFIDCage(models.Model):
         related_name="rfid_cage",
         unique=True,
     )
-    bound_time = models.DateTimeField("绑定时间", auto_now_add=True, db_index=True)
+    bound_time = models.DateField("绑定时间", auto_now_add=True, db_index=True)
 
     def __str__(self):
         return f"{self.rfid.rfid_id}-{self.cage.cage_id}"
@@ -375,7 +375,7 @@ class CalfCage(models.Model):
         related_name="calf_cage",
         unique=True,
     )
-    cage_entry_time = models.DateTimeField("入笼时间", auto_now_add=True, db_index=True)
+    cage_entry_time = models.DateField("入笼时间", auto_now_add=True, db_index=True)
 
     def __str__(self):
         return f"{self.calf.calf_id}-{self.cage.cage_id}"
@@ -444,7 +444,7 @@ class RemainingMilk(BaseModel):
         on_delete=models.CASCADE,
         related_name="remaining_milks",
     )
-    date = models.DateTimeField("时间", db_index=True)
+    date = models.DateField("时间", db_index=True)
     milk_volume = models.FloatField("剩余奶量", default=0.0, db_index=True)
 
     class Meta:
@@ -534,7 +534,7 @@ class UnlinkCalf(BaseModel):
     sex = models.SmallIntegerField("性别", choices=SEXES, default=2, db_index=True)
     birth_weight = models.FloatField("出生体重(kg)", default=0.0, db_index=True)
     weight_unlink = models.FloatField("出笼体重(kg)", default=0.0, db_index=True)
-    date_unlink = models.DateTimeField("出笼时间", db_index=True, default="")
+    date_unlink = models.DateField("出笼时间", db_index=True, default="")
     rsn_unlink = models.IntegerField("出笼原因", choices=RSNS, default=0, db_index=True)
     infor_unlink = models.TextField("出笼备注信息", default="")
     pasture = models.ForeignKey(
