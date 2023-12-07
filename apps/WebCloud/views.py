@@ -12,7 +12,7 @@ from rest_framework.viewsets import ReadOnlyModelViewSet, ModelViewSet
 
 from apps.WebCloud import helper
 from apps.WebCloud.models import (
-    HistoryData,
+    AutoHistoryData,
     Cage,
     RFID,
     FeedingStandard,
@@ -24,9 +24,9 @@ from apps.WebCloud.models import (
     DeviceLog,
     Pasture,
     UnlinkCalf,
+    RationHistoryData,
 )
 from apps.WebCloud.serializers import (
-    HistoryDataModelSerializer,
     CageModelSerializer,
     RFIDModelSerializer,
     FeedingStandardModelSerializer,
@@ -38,6 +38,8 @@ from apps.WebCloud.serializers import (
     DeviceLogModelSerializer,
     PastureModelSerializer,
     UnlinkCalfModelSerializer,
+    AutoHistoryDataModelSerializer,
+    RationHistoryDataModelSerializer,
 )
 from utils.pagination import TenItemPerPagePagination
 
@@ -77,13 +79,25 @@ def choose_district(request):
     return JsonResponse(districts, safe=False)
 
 
-class HistoryDataViewSet(ModelViewSet):
+class AutoHistoryDataViewSet(ModelViewSet):
     """
-    历史数据视图集
+    auto历史数据视图集
     """
 
-    queryset = HistoryData.objects.all()
-    serializer_class = HistoryDataModelSerializer
+    queryset = AutoHistoryData.objects.all()
+    serializer_class = AutoHistoryDataModelSerializer
+    pagination_class = TenItemPerPagePagination
+    filterset_fields = ["rfid_id", "pasture"]  # 筛选选项
+    permission_classes = []
+
+
+class RationHistoryDataViewSet(ModelViewSet):
+    """
+    ration历史数据视图集
+    """
+
+    queryset = RationHistoryData.objects.all()
+    serializer_class = RationHistoryDataModelSerializer
     pagination_class = TenItemPerPagePagination
     filterset_fields = ["rfid_id", "pasture"]  # 筛选选项
     permission_classes = []
@@ -261,7 +275,7 @@ class CalfViewSet(ModelViewSet):
             ).first()
             if feeding_standard:
                 if datetime.today() == feeding_standard.get_feeding_date(
-                    i.pop("date_of_birth")
+                        i.pop("date_of_birth")
                 ):
                     count += feeding_standard.feeding_total_feeding * i.pop(
                         "birth_count"

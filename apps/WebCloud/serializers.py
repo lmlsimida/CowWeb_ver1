@@ -1,7 +1,6 @@
 from rest_framework import serializers
 
 from apps.WebCloud.models import (
-    HistoryData,
     Cage,
     RFID,
     FeedingStandard,
@@ -13,13 +12,22 @@ from apps.WebCloud.models import (
     DeviceLog,
     Pasture,
     UnlinkCalf,
+    AutoHistoryData,
+    RationHistoryData,
 )
 
 
-class HistoryDataModelSerializer(serializers.ModelSerializer):
+class AutoHistoryDataModelSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = HistoryData
+        model = AutoHistoryData
+        fields = "__all__"  # 表示序列化数据库中的所有字段
+
+
+class RationHistoryDataModelSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = RationHistoryData
         fields = "__all__"  # 表示序列化数据库中的所有字段
 
 

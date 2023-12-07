@@ -5,13 +5,14 @@ from django.contrib.auth.models import AnonymousUser
 from apps.WebCloud.models import (
     Cage,
     RFID,
-    HistoryData,
     Pasture,
     Calf,
     FeedingStandard,
     RFIDCage,
     CalfCage,
     UnlinkCalf,
+    AutoHistoryData,
+    RationHistoryData,
 )
 
 
@@ -190,10 +191,25 @@ class FeedingStandardAdmin(CustomModelAdmin):
         return user.is_superuser or user.level == 1
 
 
-@admin.register(HistoryData)
-class HistoryDataAdmin(CustomModelAdmin):
+@admin.register(AutoHistoryData)
+class AutoHistoryDataAdmin(CustomModelAdmin):
     """
-    历史数据 自定义 admin
+    auto历史数据 自定义 admin
+    """
+
+    list_display = ["rfid_id", "cage_id", "calf_id", "day_of_birth", "area"]  # 列表展示项
+
+    def has_module_permission(self, request):
+        """
+        只有管理员可以管理
+        """
+        return request.user.is_superuser
+
+
+@admin.register(RationHistoryData)
+class RationHistoryDataAdmin(CustomModelAdmin):
+    """
+    ration历史数据 自定义 admin
     """
 
     list_display = ["rfid_id", "cage_id", "calf_id", "day_of_birth", "area"]  # 列表展示项

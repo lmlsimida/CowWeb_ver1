@@ -116,11 +116,18 @@ class RFID(models.Model):
         return self.calf.feeding_standard
 
     @property
-    def history_data(self):
+    def ration_history_data(self):
         """
-        历史数据
+        ration历史数据
         """
-        return HistoryData.objects.filter(rfid_id=self.rfid_id).first()
+        return RationHistoryData.objects.filter(rfid_id=self.rfid_id).first()
+
+    @property
+    def auto_history_data(self):
+        """
+        auto历史数据
+        """
+        return AutoHistoryData.objects.filter(rfid_id=self.rfid_id).first()
 
     class Meta:
         db_table = "rfid"  # 表名
@@ -351,8 +358,12 @@ class Calf(models.Model):
         return (date.today() - self.date_of_birth).days
 
     @property
+    def auto_history_data(self):
+        return self.rfid.auto_history_data
+
+    @property
     def history_data(self):
-        return self.rfid.history_data
+        return self.rfid.ration_history_data
 
     class Meta:
         db_table = "calf"  # 表名
@@ -456,7 +467,7 @@ class RemainingMilk(BaseModel):
         return self.rfid
 
 
-class HistoryData(BaseModel):
+class AutoHistoryData(BaseModel):
     # 从设备上传至此表数据库
 
     rfid_id = models.CharField("RFID卡号", max_length=40)
@@ -475,12 +486,44 @@ class HistoryData(BaseModel):
         verbose_name="牧场",
         on_delete=models.SET_NULL,
         null=True,
-        related_name="history_data",
+        related_name="auto_history_data",
     )
 
     class Meta:
-        db_table = "history_data"  # 表名
-        verbose_name = "历史加奶数据"
+        db_table = "auto_historydata"  # 表名
+        verbose_name = "Auto历史加奶数据"
+        verbose_name_plural = verbose_name
+        ordering = ("-c_time",)
+
+    def __str__(self):
+        return self.rfid_id
+
+
+class RationHistoryData(BaseModel):
+    # 从设备上传至此表数据库
+
+    rfid_id = models.CharField("RFID卡号", max_length=40)
+    cage_id = models.CharField("笼号编码", max_length=40)
+    calf_id = models.CharField("犊牛耳标ID", max_length=40)
+    day_of_birth = models.SmallIntegerField("日龄", null=False)
+    area = models.CharField("区域", max_length=10, null=True, blank=True, default="")
+    area_id = models.CharField("区号", max_length=10, null=True, blank=True, default="")
+    descr = models.CharField("备注", max_length=1000, null=True, blank=True, default="")
+    adjusted_feeding = models.SmallIntegerField("临时调整饲喂量", default=0)
+    feeding_total_feeding = models.SmallIntegerField("总饲喂量", default=50)
+    temp = models.FloatField("饲喂温度", max_length=5, null=True, blank=True, default="")
+    mae = models.SmallIntegerField("早晚班次", default=50)
+    pasture = models.ForeignKey(
+        Pasture,
+        verbose_name="牧场",
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="ration_history_data",
+    )
+
+    class Meta:
+        db_table = "ration_historydata"  # 表名
+        verbose_name = "Ration历史加奶数据"
         verbose_name_plural = verbose_name
         ordering = ("-c_time",)
 
