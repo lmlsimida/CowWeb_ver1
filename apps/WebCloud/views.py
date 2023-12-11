@@ -3,6 +3,7 @@ from datetime import date, datetime
 from django.db.models import Count, QuerySet
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.exceptions import APIException, ValidationError
@@ -11,6 +12,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet, ModelViewSet
 
 from apps.WebCloud import helper
+from apps.WebCloud.filters import CalfFilter, CageFilter, RFIDFilter
 from apps.WebCloud.models import (
     AutoHistoryData,
     Cage,
@@ -111,7 +113,9 @@ class CageViewSet(ModelViewSet):
     queryset = Cage.objects.all()
     serializer_class = CageModelSerializer
     pagination_class = TenItemPerPagePagination
-    filterset_fields = ["pasture"]  # 筛选选项
+    # filterset_fields = ["pasture"]  # 筛选选项
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = CageFilter
     lookup_field = "cage_id"
 
     @action(methods=["GET"], url_path="all-data", detail=True)
@@ -142,7 +146,9 @@ class RFIDViewSet(ReadOnlyModelViewSet):
     queryset = RFID.objects.all()
     serializer_class = RFIDModelSerializer
     pagination_class = TenItemPerPagePagination
-    filterset_fields = ["rfid_id", "pasture"]  # 筛选选项
+    # filterset_fields = ["rfid_id", "pasture"]  # 筛选选项
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = RFIDFilter
     lookup_field = "rfid_id"
 
     @action(methods=["GET"], url_path="all-data", detail=True)
@@ -188,7 +194,9 @@ class CalfViewSet(ModelViewSet):
     queryset = Calf.objects.all()
     serializer_class = CalfModelSerializer
     pagination_class = TenItemPerPagePagination
-    filterset_fields = ["pasture", "date_of_birth"]  # 筛选选项
+    # filterset_fields = ["pasture", "date_of_birth"]  # 筛选选项
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = CalfFilter
     permission_classes = [IsAuthenticated]
     lookup_field = "calf_id"
 
@@ -275,7 +283,7 @@ class CalfViewSet(ModelViewSet):
             ).first()
             if feeding_standard:
                 if datetime.today() == feeding_standard.get_feeding_date(
-                        i.pop("date_of_birth")
+                    i.pop("date_of_birth")
                 ):
                     count += feeding_standard.feeding_total_feeding * i.pop(
                         "birth_count"

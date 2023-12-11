@@ -175,8 +175,12 @@ class Cage(models.Model):
         return self.rfid.feeding_standard
 
     @property
-    def history_data(self):
-        return self.rfid.history_data
+    def auto_history_data(self):
+        return self.rfid.auto_history_data
+
+    @property
+    def ration_history_data(self):
+        return self.rfid.ration_history_data
 
     def has_calf(self) -> bool:
         """
@@ -317,6 +321,14 @@ class Calf(models.Model):
         是否入笼
         """
         return CalfCage.check_bound(self)
+
+    @classmethod
+    def filter_is_in_cage(cls):
+        return cls.objects.filter(calf_cage__isnull=False)
+
+    @classmethod
+    def filter_not_in_cage(cls):
+        return cls.objects.filter(calf_cage__isnull=True)
 
     @property
     def in_cage_time(self):
@@ -479,6 +491,7 @@ class AutoHistoryData(BaseModel):
     descr = models.CharField("备注", max_length=1000, null=True, blank=True, default="")
     adjusted_feeding = models.SmallIntegerField("临时调整饲喂量", default=0)
     feeding_total_feeding = models.SmallIntegerField("总饲喂量", default=50)
+    data_time_auto = models.DateTimeField("DataTimeAuto", blank=True, null=True)
     temp = models.FloatField("饲喂温度", max_length=5, null=True, blank=True, default="")
     mae = models.SmallIntegerField("早晚班次", default=50)
     pasture = models.ForeignKey(
@@ -511,6 +524,7 @@ class RationHistoryData(BaseModel):
     descr = models.CharField("备注", max_length=1000, null=True, blank=True, default="")
     adjusted_feeding = models.SmallIntegerField("临时调整饲喂量", default=0)
     feeding_total_feeding = models.SmallIntegerField("总饲喂量", default=50)
+    data_time_auto = models.DateTimeField("DataTimeAuto", blank=True, null=True)
     temp = models.FloatField("饲喂温度", max_length=5, null=True, blank=True, default="")
     mae = models.SmallIntegerField("早晚班次", default=50)
     pasture = models.ForeignKey(
@@ -572,7 +586,7 @@ class UnlinkCalf(BaseModel):
 
     SEXES = ((1, "公"), (2, "母"))
     RSNS = ((0, "无"), (1, "断奶"), (2, "死亡"), (3, "其他"))
-    calf_id = models.CharField("犊牛编号", max_length=40, unique=True)
+    calf_id = models.CharField("犊牛编号", max_length=40, db_index=True)
     date_of_birth = models.DateField("出生日期", db_index=True)
     sex = models.SmallIntegerField("性别", choices=SEXES, default=2, db_index=True)
     birth_weight = models.FloatField("出生体重(kg)", default=0.0, db_index=True)
