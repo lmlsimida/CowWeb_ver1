@@ -92,6 +92,21 @@ class AutoHistoryDataViewSet(ModelViewSet):
     filterset_fields = ["rfid_id", "pasture"]  # 筛选选项
     permission_classes = []
 
+    def create(self, request, *args, **kwargs):
+        """
+        新建，传递列表可批量创建
+        """
+        data = request.data
+        if isinstance(data, list):
+            serializer = self.get_serializer(data=data, many=True)
+        else:
+            serializer = self.get_serializer(data=data)
+
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(None, status=status.HTTP_201_CREATED, headers=headers)
+
 
 class RationHistoryDataViewSet(ModelViewSet):
     """
@@ -103,6 +118,21 @@ class RationHistoryDataViewSet(ModelViewSet):
     pagination_class = TenItemPerPagePagination
     filterset_fields = ["rfid_id", "pasture"]  # 筛选选项
     permission_classes = []
+
+    def create(self, request, *args, **kwargs):
+        """
+        新建，传递列表可批量创建
+        """
+        data = request.data
+        if isinstance(data, list):
+            serializer = self.get_serializer(data=data, many=True)
+        else:
+            serializer = self.get_serializer(data=data)
+
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(None, status=status.HTTP_201_CREATED, headers=headers)
 
 
 class CageViewSet(ModelViewSet):
