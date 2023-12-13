@@ -436,8 +436,12 @@ class CalfCageViewSet(ModelViewSet):
     @action(methods=["POST"], url_path="exchange-cage", detail=False)
     def exchange_cage(self, request, *args, **kwargs):
         data = request.data
-        calf_cage1 = self.queryset.filter(cage_id=data["cage1"]).first()
-        calf_cage2 = self.queryset.filter(cage_id=data["cage2"]).first()
+        calf_cage1 = self.queryset.filter(
+            cage_id=data["cage1"], cage__pasture_id=data["pasture"]
+        ).first()
+        calf_cage2 = self.queryset.filter(
+            cage_id=data["cage2"], cage__pasture_id=data["pasture"]
+        ).first()
         cage1_id = calf_cage1.cage.id
         cage2_id = calf_cage2.cage.id
         calf_cage1.cage_id = cage2_id
