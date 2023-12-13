@@ -433,6 +433,19 @@ class CalfCageViewSet(ModelViewSet):
     serializer_class = CalfCageModelSerializer
     pagination_class = TenItemPerPagePagination
 
+    @action(methods=["POST"], url_path="exchange-cage", detail=False)
+    def exchange_cage(self, request, *args, **kwargs):
+        data = request.data
+        calf_cage1 = self.queryset.filter(cage_id=data["cage1"]).first()
+        calf_cage2 = self.queryset.filter(cage_id=data["cage2"]).first()
+        cage1_id = calf_cage1.cage.id
+        cage2_id = calf_cage2.cage.id
+        calf_cage1.cage_id = cage2_id
+        calf_cage2.cage_id = cage1_id
+        calf_cage1.save()
+        calf_cage2.save()
+        return Response()
+
 
 class DataUpdateStatusViewSet(ModelViewSet):
     """
