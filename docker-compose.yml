@@ -9,6 +9,7 @@ services:
       - .env
     volumes:
       - db_data:/var/lib/mysql
+      - ./webcloud.sql:/docker-entrypoint-initdb.d/init.sql  # 映射 SQL 脚本
   web:
     build: .
     environment:
