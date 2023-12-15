@@ -1,6 +1,18 @@
 version: '3'
 
 services:
+  db:
+    image: mysql
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - db_data:/var/lib/mysql
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - "8080:8080"
   web:
     build: .
     environment:
@@ -10,7 +22,10 @@ services:
       - static-files:/app/static
       - ./entrypoint.sh:/app/entrypoint.sh  # 挂载 entrypoint.sh 到容器
     restart: always
-
+    env_file:
+      - .env
+    depends_on:
+      - db
   nginx-backend:
     image: nginx
     environment:
@@ -28,3 +43,4 @@ services:
 volumes:
   uwsgi-socket:
   static-files:
+  db_data:

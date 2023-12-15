@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 from datetime import timedelta
 from pathlib import Path
-
+import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -84,10 +84,10 @@ WSGI_APPLICATION = "CowWeb_ver1.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",
-        "NAME": "webcloud",
-        "USER": "root",
-        "PASSWORD": "1q2w3e4r",
-        "HOST": "127.0.0.1",
+        "NAME": os.getenv("MYSQL_DATABASE", "webcloud"),
+        "USER": os.getenv("MYSQL_USER", "dev"),
+        "PASSWORD": os.getenv("MYSQL_PASSWORD"),
+        "HOST": "db",
         "PORT": 3306,
         "OPTIONS": {
             "init_command": "SET time_zone='Asia/Shanghai'",
