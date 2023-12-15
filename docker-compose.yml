@@ -12,6 +12,7 @@ services:
       - ./webcloud.sql:/docker-entrypoint-initdb.d/init.sql  # 映射 SQL 脚本
   web:
     build: .
+    container_name: web
     environment:
       - DJANGO_SETTINGS_MODULE=CowWeb_ver1.settings
     volumes:
@@ -23,8 +24,9 @@ services:
       - .env
     depends_on:
       - db
-  nginx-backend:
+  nginx:
     image: nginx
+    container_name: nginx
     environment:
       - TZ=Asia/Shanghai
     ports:
