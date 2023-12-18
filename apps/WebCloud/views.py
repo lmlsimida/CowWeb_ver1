@@ -439,15 +439,14 @@ class CalfCageViewSet(ModelViewSet):
         calf_cage1 = self.queryset.filter(
             cage_id=data["cage1"], cage__pasture_id=data["pasture"]
         ).first()
-        calf_cage2 = self.queryset.filter(
-            cage_id=data["cage2"], cage__pasture_id=data["pasture"]
-        ).first()
-        cage1_id = calf_cage1.cage.id
-        cage2_id = calf_cage2.cage.id
-        calf_cage1.cage_id = cage2_id
-        calf_cage2.cage_id = cage1_id
-        calf_cage1.save()
-        calf_cage2.save()
+        calf = calf_cage1.calf
+        cage_entry_time = calf_cage1.cage_entry_time
+        calf_cage1.delete()
+        CalfCage.objects.create(
+            cage=Cage.objects.filter(id=data["cage2"]).first(),
+            calf=calf,
+            cage_entry_time=cage_entry_time,
+        )
         return Response()
 
 
